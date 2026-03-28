@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signup - VendorCRM</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .auth-card h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .auth-card p {
+      margin: 0 0 24px;
+      color: #6b7280;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .auth-form input {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+
+    .auth-form button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .auth-form button:hover {
+      background: #1d4ed8;
+    }
+
+    .auth-alt {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #4b5563;
+    }
+
+    .auth-alt a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .auth-message {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      font-size: 14px;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <h1>Signup</h1>
+    <p>Create your VendorCRM account.</p>
+
+    <form id="signupForm" class="auth-form">
+      <input type="email" id="signupEmail" placeholder="Enter email" required />
+      <input type="password" id="signupPassword" placeholder="Enter password" required />
+      <button type="submit">Create Account</button>
+    </form>
+
+    <div id="signupMessage" class="auth-message">Create a new account.</div>
+
+    <div class="auth-alt">
+      Already have an account?
+      <a href="login.html">Login</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
