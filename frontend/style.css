@@ -1456,3 +1456,908 @@ h2 {
   color: #ffffff;
   line-height: 1.3;
 }
+/* =========================
+   MOBILE RESPONSIVE MEDIA
+   ========================= */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .sidebar.collapsed {
+    width: 100%;
+  }
+
+  .profile-simple {
+    align-items: center;
+    text-align: center;
+    padding: 14px 8px 18px;
+  }
+
+  .profile-avatar-text {
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sidebar ul li {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+
+  .main {
+    padding: 16px;
+  }
+
+  .topbar {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .topbar-title {
+    font-size: 22px;
+  }
+
+  .global-search-input {
+    width: 100%;
+  }
+
+  .topbar-logout-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .cards,
+  .mini-stats,
+  .customer-tools,
+  .pipeline-filters,
+  .vendor-search-box,
+  .lead-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card,
+  .chart-box,
+  .vendor-metric-card,
+  .vendor-table-card,
+  .review-history-card,
+  .vendor-details-card,
+  .analytics-form-card,
+  .analytics-result-card,
+  .chart-card,
+  .top-vendors-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .cards {
+    gap: 14px;
+  }
+
+  .charts-row,
+  .analytics-layout,
+  .performance-grid,
+  .settings-grid,
+  .vendor-dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chart-canvas-wrap {
+    height: 260px;
+  }
+
+  .chart-box {
+    height: auto;
+    padding: 16px;
+  }
+
+  .chart-card {
+    height: auto;
+  }
+
+  #lineChart,
+  #donutChart,
+  #vendorScoreChart,
+  #sentimentDistributionChart {
+    height: 260px !important;
+    max-height: 260px !important;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .customer-tools input,
+  .customer-tools select,
+  .vendor-search-box input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .analyze-btn,
+  .action-btn,
+  .topbar-logout-btn {
+    width: 100%;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table,
+  #customersTable,
+  #leadsTable,
+  #vendorsTable,
+  .vendor-score-table,
+  .review-history-table {
+    min-width: 700px;
+  }
+
+  .pipeline-board {
+    grid-template-columns: 1fr !important;
+    overflow-x: visible;
+  }
+
+  .pipeline-column {
+    min-height: auto;
+  }
+
+  .lead-modal {
+    padding: 12px;
+  }
+
+  .lead-modal-content {
+    padding: 16px;
+    max-height: 92vh;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 12px;
+  }
+
+  .topbar-title {
+    font-size: 20px;
+  }
+
+  .sidebar ul li {
+    flex: 1 1 100%;
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .vendor-metric-card p {
+    font-size: 28px;
+  }
+
+  .result-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .toast {
+    min-width: unset;
+    width: calc(100vw - 32px);
+    max-width: unset;
+  }
+
+  .profile-avatar-text {
+    width: 54px;
+    height: 54px;
+    font-size: 20px;
+  }
+}
+/* =========================
+   MOBILE TOPBAR FIX
+   ========================= */
+
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .main,
+  .section,
+  .topbar,
+  .topbar-left,
+  .topbar-right {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .topbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+    width: 100%;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .topbar-left {
+    justify-content: space-between;
+  }
+
+  .topbar-right {
+    flex-direction: column;
+  }
+
+  .topbar-title,
+  .logo,
+  .brand-title {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+
+  .global-search,
+  .global-search-input,
+  .search-box input,
+  .topbar input[type="text"] {
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .user-email,
+  .profile-email,
+  .topbar-user-email {
+    font-size: 14px;
+    text-align: center;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .topbar-logout-btn,
+  .logout-btn,
+  .logout-button {
+    width: 100%;
+    max-width: 160px;
+  }
+
+  .clock,
+  .topbar-clock,
+  #clock {
+    font-size: 14px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .cards,
+  .mini-stats,
+  .vendor-dashboard-grid,
+  .analytics-layout,
+  .performance-grid,
+  .settings-grid,
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .card,
+  .chart-box,
+  .analytics-form-card,
+  .analytics-result-card,
+  .vendor-table-card,
+  .review-history-card,
+  .vendor-details-card,
+  .lead-form-card,
+  .lead-summary-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 10px 12px;
+  }
+
+  .topbar-left {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .topbar-title,
+  .logo,
+  .brand-title {
+    font-size: 16px;
+  }
+
+  .user-email,
+  .profile-email,
+  .topbar-user-email,
+  .clock,
+  .topbar-clock,
+  #clock {
+    font-size: 13px;
+  }
+
+  .topbar-logout-btn,
+  .logout-btn,
+  .logout-button {
+    width: 100%;
+    max-width: 140px;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+}
+
+/* =====================================================
+   FINAL RESPONSIVE PATCH
+   Add this at the END of style.css
+   ===================================================== */
+
+/* ---------- Global responsive safety ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---------- Fluid typography ---------- */
+h1 {
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+h2 {
+  font-size: clamp(20px, 2.5vw, 28px);
+}
+
+h3 {
+  font-size: clamp(17px, 2vw, 22px);
+}
+
+p,
+span,
+label,
+input,
+select,
+textarea,
+button,
+a,
+li,
+td,
+th {
+  font-size: clamp(13px, 1.1vw, 16px);
+}
+
+/* ---------- Main layout safety ---------- */
+.container,
+.main,
+.section,
+.content,
+.page-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.main {
+  overflow-x: hidden;
+}
+
+/* ---------- Topbar / header fix ---------- */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.topbar-left {
+  flex: 1 1 300px;
+}
+
+.topbar-right {
+  flex: 1 1 260px;
+  justify-content: flex-end;
+}
+
+.topbar-title,
+.logo,
+.brand-title {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.global-search,
+.global-search-input,
+.search-box,
+.search-box input,
+.topbar input[type="text"] {
+  flex: 1 1 220px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.user-email,
+.profile-email,
+.topbar-user-email {
+  min-width: 0;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.topbar-logout-btn,
+.logout-btn,
+.logout-button {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.clock,
+.topbar-clock,
+#clock {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- Cards / grids ---------- */
+.cards,
+.mini-stats,
+.vendor-dashboard-grid,
+.analytics-layout,
+.performance-grid,
+.settings-grid,
+.charts-row,
+.dashboard-grid,
+.summary-grid,
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.card,
+.chart-box,
+.chart-card,
+.analytics-form-card,
+.analytics-result-card,
+.vendor-metric-card,
+.vendor-table-card,
+.review-history-card,
+.vendor-details-card,
+.top-vendors-card,
+.lead-form-card,
+.lead-summary-card,
+.settings-card,
+.performance-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ---------- Forms ---------- */
+form,
+.form-group,
+.input-group {
+  width: 100%;
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.customer-tools input,
+.customer-tools select,
+.vendor-search-box input,
+.global-search-input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ---------- Buttons ---------- */
+.action-btn,
+.analyze-btn,
+.topbar-logout-btn,
+.logout-btn,
+.logout-button {
+  white-space: normal;
+}
+
+/* ---------- Tables ---------- */
+.table-wrapper,
+.vendor-table-wrapper,
+.review-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table,
+#customersTable,
+#vendorsTable,
+#leadsTable,
+.vendor-score-table,
+.review-history-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+/* ---------- Charts ---------- */
+.chart-canvas-wrap {
+  width: 100%;
+  max-width: 100%;
+  height: clamp(220px, 35vw, 360px);
+}
+
+#lineChart,
+#donutChart,
+#vendorScoreChart,
+#sentimentDistributionChart {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* ---------- Pipeline ---------- */
+.pipeline-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.pipeline-column,
+.pipeline-card {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.sidebar ul {
+  max-width: 100%;
+}
+
+.sidebar ul li {
+  word-break: break-word;
+}
+
+/* ---------- Modals ---------- */
+.modal,
+.lead-modal,
+.vendor-modal {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+}
+
+.modal-content,
+.lead-modal-content,
+.vendor-modal-content {
+  width: min(100%, 700px);
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* =========================
+   TABLET
+   ========================= */
+@media (max-width: 992px) {
+  .topbar {
+    gap: 10px;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .topbar-title,
+  .logo,
+  .brand-title {
+    text-align: center;
+  }
+
+  .cards,
+  .mini-stats,
+  .vendor-dashboard-grid,
+  .analytics-layout,
+  .performance-grid,
+  .settings-grid,
+  .charts-row,
+  .dashboard-grid,
+  .summary-grid,
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .sidebar.collapsed {
+    width: 100%;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sidebar ul li {
+    flex: 1 1 calc(50% - 8px);
+    margin: 0;
+    text-align: center;
+    padding: 10px 12px;
+  }
+
+  .main {
+    padding: 14px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .topbar-right {
+    flex-direction: column;
+  }
+
+  .topbar-title,
+  .logo,
+  .brand-title {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .global-search,
+  .global-search-input,
+  .search-box,
+  .search-box input,
+  .topbar input[type="text"] {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .user-email,
+  .profile-email,
+  .topbar-user-email,
+  .clock,
+  .topbar-clock,
+  #clock {
+    width: 100%;
+    text-align: center;
+  }
+
+  .topbar-logout-btn,
+  .logout-btn,
+  .logout-button,
+  .action-btn,
+  .analyze-btn {
+    width: 100%;
+  }
+
+  .cards,
+  .mini-stats,
+  .vendor-dashboard-grid,
+  .analytics-layout,
+  .performance-grid,
+  .settings-grid,
+  .charts-row,
+  .dashboard-grid,
+  .summary-grid,
+  .metrics-grid,
+  .pipeline-board {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card,
+  .chart-box,
+  .chart-card,
+  .analytics-form-card,
+  .analytics-result-card,
+  .vendor-metric-card,
+  .vendor-table-card,
+  .review-history-card,
+  .vendor-details-card,
+  .top-vendors-card,
+  .lead-form-card,
+  .lead-summary-card,
+  .settings-card,
+  .performance-card,
+  .pipeline-column,
+  .pipeline-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .chart-canvas-wrap {
+    height: 260px;
+  }
+
+  .customer-tools,
+  .pipeline-filters,
+  .vendor-search-box,
+  .lead-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}
+
+/* =========================
+   SMALL MOBILE
+   ========================= */
+@media (max-width: 480px) {
+  .main {
+    padding: 12px;
+  }
+
+  .topbar {
+    padding: 10px 12px;
+  }
+
+  .topbar-title,
+  .logo,
+  .brand-title {
+    font-size: 16px;
+  }
+
+  .user-email,
+  .profile-email,
+  .topbar-user-email,
+  .clock,
+  .topbar-clock,
+  #clock {
+    font-size: 13px;
+  }
+
+  .sidebar ul li {
+    flex: 1 1 100%;
+    font-size: 12px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  table,
+  #customersTable,
+  #vendorsTable,
+  #leadsTable,
+  .vendor-score-table,
+  .review-history-table {
+    min-width: 600px;
+  }
+}
