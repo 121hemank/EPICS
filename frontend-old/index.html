@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor Partnership CRM</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body>
+  <!-- TOP NAVBAR -->
+  <header class="topbar">
+  <div class="topbar-left">
+    <span class="menu-toggle" onclick="toggleSidebar()">☰</span>
+    <h2 class="topbar-title">VendorCRM</h2>
+  </div>
+
+  <div class="topbar-right">
+    <input
+      type="text"
+      id="globalSearchInput"
+      class="global-search-input"
+      placeholder="Search vendors, customers, leads..."
+      onkeyup="handleGlobalSearch(event)"
+    />
+
+    <span id="liveClock"></span>
+
+    
+
+    <span id="loggedInUserEmail" class="topbar-user"></span>
+
+    <button class="topbar-logout-btn" onclick="handleLogout()">Logout</button>
+  </div>
+</header>
+
+  <div class="container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="profile-simple">
+  <div class="profile-avatar-text" id="profileAvatarText">H</div>
+  <h3 id="sidebarUserName">Hemank Patel</h3>
+</div>
+
+      <ul>
+        <li class="active" onclick="showSection('dashboard')">Dashboard</li>
+        <li onclick="showSection('customers')">Customers</li>
+        <li onclick="showSection('leads')">Leads</li>
+         <li onclick="showSection('vendors')">Vendors</li>
+        <li onclick="showSection('pipeline')">Pipeline</li>
+        <li onclick="showSection('analytics')">Analytics</li>
+        <li onclick="showSection('performance')">Performance</li>
+        <li onclick="showSection('settings')">Settings</li>
+       
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="section active">
+  <div class="vendor-dashboard-grid">
+    <div class="vendor-metric-card">
+      <h3>Total Vendors</h3>
+      <p id="totalVendorsCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Total Reviews</h3>
+      <p id="totalReviewsCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Average Vendor Score</h3>
+      <p id="averageVendorScoreCard">0.00</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Active Vendors</h3>
+      <p id="activeVendorsCard">0</p>
+    </div>
+  </div>
+
+  <div class="vendor-dashboard-grid">
+    <div class="vendor-metric-card">
+      <h3>Total Leads</h3>
+      <p id="totalLeadsDashboardCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Won Leads</h3>
+      <p id="wonLeadsDashboardCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Lost Leads</h3>
+      <p id="lostLeadsDashboardCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>High Priority Leads</h3>
+      <p id="highPriorityLeadsDashboardCard">0</p>
+    </div>
+  </div>
+
+  <div class="charts-row">
+  <div class="chart-box">
+    <h3>Top Vendor Scores</h3>
+    <div class="chart-canvas-wrap">
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <h3>Lead Stage Distribution</h3>
+    <div class="chart-canvas-wrap">
+      <canvas id="donutChart"></canvas>
+    </div>
+  </div>
+</div>
+
+  <div class="vendor-table-card">
+    <div class="table-header">
+      <h3>Vendor Score Summary</h3>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="vendor-score-table">
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>Total Reviews</th>
+            <th>Avg Rating</th>
+            <th>Positive</th>
+            <th>Neutral</th>
+            <th>Negative</th>
+            <th>Vendor Score</th>
+          </tr>
+        </thead>
+        <tbody id="vendorScoreTableBody">
+          <tr>
+            <td colspan="7">No vendor data available yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="vendor-details-card">
+    <div class="table-header">
+      <h3>Vendor Insights</h3>
+    </div>
+
+    <div class="vendor-search-box">
+      <select id="vendorSearchInput">
+        <option value="">Select vendor to view details</option>
+      </select>
+      <button id="vendorSearchBtn" class="analyze-btn">Search Vendor</button>
+    </div>
+
+    <div id="vendorDetailsSummary" class="vendor-details-summary">
+      Select a vendor to view score summary and reviews.
+    </div>
+
+    <div class="table-wrapper">
+      <table class="review-history-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Rating</th>
+            <th>Review</th>
+            <th>BERTweet</th>
+            <th>RoBERTa</th>
+            <th>Final Sentiment</th>
+            <th>Final Score</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="vendorDetailsReviewTableBody">
+          <tr>
+            <td colspan="8">No vendor selected.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+      <!-- CUSTOMERS -->
+      <section id="customers" class="section">
+  <div class="customer-tools">
+  <input
+    type="text"
+    id="customerSearch"
+    placeholder="Search customer..."
+    onkeyup="searchCustomer()"
+  />
+  <button id="downloadCustomersCsvBtn" class="analyze-btn" onclick="downloadCustomersCSV()">
+    Download CSV
+  </button>
+</div>
+
+  <div class="mini-stats">
+    <div>Total Customers: <b id="totalCustomersStat">0</b></div>
+    <div>Active: <b id="activeCustomersStat" style="color:#22c55e">0</b></div>
+    <div>Inactive: <b id="inactiveCustomersStat" style="color:#ef4444">0</b></div>
+  </div>
+
+  <h2>Vendor Customers</h2>
+
+  <div class="table-wrapper">
+    <table id="customersTable">
+      <thead>
+        <tr>
+          <th>Customer Name</th>
+          <th>Vendor</th>
+          <th>Total Reviews</th>
+          <th>Avg Rating</th>
+          <th>Status</th>
+          <th>Latest Review Date</th>
+        </tr>
+      </thead>
+      <tbody id="customersTableBody">
+        <tr>
+          <td colspan="6">No customer data available yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+      <!-- LEADS -->
+      <section id="leads" class="section">
+  <div class="page-header">
+    <div>
+      <h1>Vendor Lead Management</h1>
+      <p>Add and manage vendor leads for onboarding and follow-up.</p>
+    </div>
+  </div>
+
+  <div class="vendor-dashboard-grid">
+    <div class="vendor-metric-card">
+      <h3>Total Leads</h3>
+      <p id="totalLeadsCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Open Leads</h3>
+      <p id="openLeadsCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>High Priority Leads</h3>
+      <p id="highPriorityLeadsCard">0</p>
+    </div>
+  </div>
+
+  <div class="analytics-layout">
+    <div class="analytics-form-card">
+      <h2>Add New Vendor Lead</h2>
+
+      <form id="leadForm" class="vendor-review-form">
+        <div class="form-group">
+          <label for="leadVendorName">Vendor Name</label>
+          <input type="text" id="leadVendorName" placeholder="Enter vendor name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="leadContactPerson">Contact Person</label>
+          <input type="text" id="leadContactPerson" placeholder="Enter contact person name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="leadContactEmail">Contact Email</label>
+          <input type="email" id="leadContactEmail" placeholder="Enter contact email" />
+        </div>
+
+        <div class="form-group">
+          <label for="leadContactPhone">Contact Phone</label>
+          <input type="text" id="leadContactPhone" placeholder="Enter contact phone" />
+        </div>
+
+        <div class="form-group">
+          <label for="leadStage">Lead Stage</label>
+          <select id="leadStage" required>
+            <option value="Prospecting">Prospecting</option>
+            <option value="Negotiation">Negotiation</option>
+            <option value="Closing">Closing</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="leadPriority">Priority</label>
+          <select id="leadPriority" required>
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="leadStatus">Status</label>
+          <select id="leadStatus" required>
+            <option value="Open" selected>Open</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Follow-up">Follow-up</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Won">Won</option>
+            <option value="Lost">Lost</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="leadNotes">Notes</label>
+          <textarea id="leadNotes" rows="5" placeholder="Enter notes"></textarea>
+        </div>
+
+        <button type="submit" id="leadSubmitBtn" class="analyze-btn">
+          Save Lead
+        </button>
+      </form>
+    </div>
+
+    <div class="analytics-result-card">
+      <h2>Lead Summary</h2>
+      <div id="leadStatusBox" class="analysis-status">
+        No lead action yet.
+      </div>
+    </div>
+  </div>
+
+  <div class="review-history-card">
+    <div class="table-header">
+      <h3>Vendor Leads</h3>
+    </div>
+
+    <div class="customer-tools">
+  <input
+    type="text"
+    id="leadSearch"
+    placeholder="Search vendor lead..."
+    onkeyup="searchLeads()"
+  />
+
+  <button id="downloadLeadsCsvBtn" class="analyze-btn" onclick="downloadLeadsCSV()">
+    Download CSV
+  </button>
+
+  <select id="leadStageFilter" onchange="applyLeadFilters()">
+        <option value="">All Stages</option>
+        <option value="Prospecting">Prospecting</option>
+        <option value="Negotiation">Negotiation</option>
+        <option value="Closing">Closing</option>
+      </select>
+
+      <select id="leadPriorityFilter" onchange="applyLeadFilters()">
+        <option value="">All Priorities</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+
+      <select id="leadStatusFilter" onchange="applyLeadFilters()">
+        <option value="">All Statuses</option>
+        <option value="Open">Open</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Follow-up">Follow-up</option>
+        <option value="On Hold">On Hold</option>
+        <option value="Won">Won</option>
+        <option value="Lost">Lost</option>
+      </select>
+    </div>
+
+    <div class="table-wrapper">
+  <table id="leadsTable">
+    <thead>
+      <tr>
+        <th>Vendor</th>
+        <th>Contact Person</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Stage</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="leadsTableBody">
+      <tr>
+        <td colspan="9">No leads available yet.</td>
+      </tr>
+    </tbody>
+  </table>
+ </div>
+</section>
+
+<!-- VENDORS -->
+<section id="vendors" class="section">
+  <div class="page-header">
+    <div>
+      <h1>Approved Vendors</h1>
+      <p>Manage approved vendors available for analytics and scoring.</p>
+    </div>
+  </div>
+
+  <div class="vendor-dashboard-grid">
+    <div class="vendor-metric-card">
+      <h3>Total Vendors</h3>
+      <p id="vendorsTotalCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Active Vendors</h3>
+      <p id="vendorsActiveCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Inactive Vendors</h3>
+      <p id="vendorsInactiveCard">0</p>
+    </div>
+  </div>
+
+  <div class="review-history-card">
+    <div class="table-header">
+      <h3>Vendor Directory</h3>
+    </div>
+
+    <div class="customer-tools">
+      <input
+        type="text"
+        id="vendorTableSearch"
+        placeholder="Search vendor..."
+        onkeyup="searchVendors()"
+      />
+      <button class="analyze-btn" onclick="downloadVendorsCSV()">Download CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="vendorsTable">
+        <thead>
+          <tr>
+            <th>Vendor Name</th>
+            <th>Contact Person</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="vendorsTableBody">
+          <tr>
+            <td colspan="7">No approved vendors available yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+      <!-- ANALYTICS -->
+      <section id="analytics" class="section">
+        <div class="page-header">
+          <div>
+            <h1>AI Vendor Review Analysis</h1>
+            <p>Analyze customer reviews and automatically update vendor scores.</p>
+          </div>
+        </div>
+
+        <div class="analytics-layout">
+          <div class="analytics-form-card">
+            <h2>Submit Review</h2>
+
+            <form id="vendorReviewForm" class="vendor-review-form">
+              <div class="form-group">
+                <label for="customerName">Customer Name</label>
+                <input type="text" id="customerName" placeholder="Enter customer name" required />
+              </div>
+
+              <div class="form-group">
+  <label for="vendorName">Vendor Name</label>
+  <select id="vendorName" required>
+    <option value="">Select approved vendor</option>
+  </select>
+</div>
+
+              <div class="form-group">
+                <label for="vendorRating">Rating (1 to 5)</label>
+                <select id="vendorRating" required>
+                  <option value="">Select rating</option>
+                  <option value="1">1 - Very Poor</option>
+                  <option value="2">2 - Poor</option>
+                  <option value="3">3 - Average</option>
+                  <option value="4">4 - Good</option>
+                  <option value="5">5 - Excellent</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="reviewText">Customer Review</label>
+                <textarea
+                  id="reviewText"
+                  rows="6"
+                  placeholder="Write the customer review here."
+                  required
+                ></textarea>
+              </div>
+
+              <button type="submit" id="analyzeBtn" class="analyze-btn">
+                Analyze with AI
+              </button>
+            </form>
+          </div>
+
+          <div class="analytics-result-card">
+            <h2>Analysis Result</h2>
+
+            <div id="analysisStatus" class="analysis-status">
+              No analysis yet.
+            </div>
+
+            <div id="analysisResultBox" class="analysis-result-box" style="display: none;">
+              <div class="result-row">
+                <span>BERTweet Prediction</span>
+                <strong id="bertweetPrediction">-</strong>
+              </div>
+
+              <div class="result-row">
+                <span>BERTweet Confidence</span>
+                <strong id="bertweetConfidence">-</strong>
+              </div>
+
+              <div class="result-row">
+                <span>RoBERTa Prediction</span>
+                <strong id="robertaPrediction">-</strong>
+              </div>
+
+              <div class="result-row">
+                <span>RoBERTa Confidence</span>
+                <strong id="robertaConfidence">-</strong>
+              </div>
+
+              <hr />
+
+              <div class="result-row">
+                <span>Final Sentiment</span>
+                <strong id="finalSentiment">-</strong>
+              </div>
+
+              <div class="result-row">
+                <span>Final Vendor Score</span>
+                <strong id="finalScore">-</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-history-card">
+          <div class="table-header">
+            <h3>Recent Review History</h3>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="review-history-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Vendor</th>
+                  <th>Rating</th>
+                  <th>BERTweet</th>
+                  <th>RoBERTa</th>
+                  <th>Final Sentiment</th>
+                  <th>Final Score</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody id="reviewHistoryTableBody">
+                <tr>
+                  <td colspan="8">No review history available yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="pipeline" class="section">
+  <div class="page-header">
+    <div>
+      <h1>Vendor Pipeline</h1>
+      <p>Track vendor leads across business stages.</p>
+    </div>
+  </div>
+
+  <div class="vendor-dashboard-grid">
+    <div class="vendor-metric-card">
+      <h3>Total Pipeline Leads</h3>
+      <p id="pipelineTotalCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>Won Leads</h3>
+      <p id="pipelineWonCard">0</p>
+    </div>
+
+    <div class="vendor-metric-card">
+      <h3>High Priority</h3>
+      <p id="pipelineHighPriorityCard">0</p>
+    </div>
+  </div>
+
+  <div class="customer-tools">
+    <input
+      type="text"
+      id="pipelineSearch"
+      placeholder="Search pipeline lead..."
+      onkeyup="applyPipelineFilters()"
+    />
+
+    <select id="pipelinePriorityFilter" onchange="applyPipelineFilters()">
+      <option value="">All Priorities</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+
+    <select id="pipelineStatusFilter" onchange="applyPipelineFilters()">
+      <option value="">All Statuses</option>
+      <option value="Open">Open</option>
+      <option value="Contacted">Contacted</option>
+      <option value="Follow-up">Follow-up</option>
+      <option value="On Hold">On Hold</option>
+      <option value="Won">Won</option>
+      <option value="Lost">Lost</option>
+    </select>
+  </div>
+
+  <div class="pipeline-board">
+    <div class="pipeline-column">
+      <div class="pipeline-column-header">
+        <h3>Prospecting</h3>
+        <span id="prospectingCount">0</span>
+      </div>
+      <div id="prospectingColumn" class="pipeline-cards"></div>
+    </div>
+
+    <div class="pipeline-column">
+      <div class="pipeline-column-header">
+        <h3>Negotiation</h3>
+        <span id="negotiationCount">0</span>
+      </div>
+      <div id="negotiationColumn" class="pipeline-cards"></div>
+    </div>
+
+    <div class="pipeline-column">
+      <div class="pipeline-column-header">
+        <h3>Closing</h3>
+        <span id="closingCount">0</span>
+      </div>
+      <div id="closingColumn" class="pipeline-cards"></div>
+    </div>
+
+    <div class="pipeline-column">
+      <div class="pipeline-column-header">
+        <h3>Won</h3>
+        <span id="wonCount">0</span>
+      </div>
+      <div id="wonColumn" class="pipeline-cards"></div>
+    </div>
+
+    <div class="pipeline-column">
+      <div class="pipeline-column-header">
+        <h3>Lost</h3>
+        <span id="lostCount">0</span>
+      </div>
+      <div id="lostColumn" class="pipeline-cards"></div>
+    </div>
+  </div>
+</section>
+
+      <!-- PERFORMANCE -->
+      <section id="performance" class="section">
+        <div class="page-header">
+          <div>
+            <h1>Performance Analytics</h1>
+            <p>Track vendor score performance and sentiment trends.</p>
+          </div>
+        </div>
+
+        <div class="performance-grid">
+          <div class="chart-card">
+            <h3>Vendor Score Overview</h3>
+            <canvas id="vendorScoreChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Sentiment Distribution</h3>
+            <canvas id="sentimentDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="top-vendors-card">
+          <div class="table-header">
+            <h3>Top Vendors</h3>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="vendor-score-table">
+              <thead>
+                <tr>
+                  <th>Vendor</th>
+                  <th>Vendor Score</th>
+                  <th>Total Reviews</th>
+                  <th>Avg Rating</th>
+                </tr>
+              </thead>
+              <tbody id="topVendorsTableBody">
+                <tr>
+                  <td colspan="4">No vendor performance data available yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+       <section id="settings" class="section">
+  <div class="page-header">
+    <div>
+      <h1>Settings</h1>
+      <p>Manage CRM preferences and scoring configuration.</p>
+    </div>
+  </div>
+
+  <div class="analytics-layout">
+    <div class="analytics-form-card">
+      <h2>Application Preferences</h2>
+
+      <form id="appSettingsForm" class="vendor-review-form">
+        <div class="form-group">
+          <label for="backendUrlSetting">Backend URL</label>
+          <input type="text" id="backendUrlSetting" placeholder="http://127.0.0.1:8000" />
+        </div>
+
+        <div class="form-group">
+          <label for="darkModeSetting">Theme</label>
+          <select id="darkModeSetting">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
+        <button type="submit" class="analyze-btn">Save App Settings</button>
+      </form>
+    </div>
+
+    <div class="analytics-form-card">
+      <h2>Scoring Weights</h2>
+
+      <form id="scoringSettingsForm" class="vendor-review-form">
+        <div class="form-group">
+          <label for="sentimentWeightSetting">AI Sentiment Weight (%)</label>
+          <input type="number" id="sentimentWeightSetting" min="0" max="100" value="50" />
+        </div>
+
+        <div class="form-group">
+          <label for="ratingWeightSetting">Customer Rating Weight (%)</label>
+          <input type="number" id="ratingWeightSetting" min="0" max="100" value="50" />
+        </div>
+
+        <div class="analysis-status" id="weightValidationMessage">
+          Sentiment weight + Rating weight must equal 100.
+        </div>
+
+        <button type="submit" class="analyze-btn">Save Scoring Settings</button>
+      </form>
+    </div>
+  </div>
+</section>
+     
+    </main>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+<div id="leadEditModal" class="lead-modal" style="display: none;">
+  <div class="lead-modal-content">
+    <div class="lead-modal-header">
+      <h3>Edit Lead</h3>
+      <button type="button" class="lead-modal-close" onclick="closeLeadEditModal()">×</button>
+    </div>
+
+    <form id="editLeadForm" class="vendor-review-form">
+      <input type="hidden" id="editLeadId" />
+
+      <div class="form-group">
+        <label for="editLeadVendorName">Vendor Name</label>
+        <input type="text" id="editLeadVendorName" required />
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadContactPerson">Contact Person</label>
+        <input type="text" id="editLeadContactPerson" required />
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadContactEmail">Contact Email</label>
+        <input type="email" id="editLeadContactEmail" />
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadContactPhone">Contact Phone</label>
+        <input type="text" id="editLeadContactPhone" />
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadStage">Stage</label>
+        <select id="editLeadStage" required>
+          <option value="Prospecting">Prospecting</option>
+          <option value="Negotiation">Negotiation</option>
+          <option value="Closing">Closing</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadPriority">Priority</label>
+        <select id="editLeadPriority" required>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadStatus">Status</label>
+        <select id="editLeadStatus" required>
+          <option value="Open">Open</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Follow-up">Follow-up</option>
+          <option value="On Hold">On Hold</option>
+          <option value="Won">Won</option>
+          <option value="Lost">Lost</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="editLeadNotes">Notes</label>
+        <textarea id="editLeadNotes" rows="4"></textarea>
+      </div>
+
+      <button type="submit" id="editLeadSubmitBtn" class="analyze-btn">
+        Update Lead
+      </button>
+    </form>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<div id="vendorEditModal" class="lead-modal" style="display: none;">
+  <div class="lead-modal-content">
+    <div class="lead-modal-header">
+      <h3>Edit Vendor</h3>
+      <button type="button" class="lead-modal-close" onclick="closeVendorEditModal()">×</button>
+    </div>
+
+    <form id="editVendorForm" class="vendor-review-form">
+      <input type="hidden" id="editVendorId" />
+
+      <div class="form-group">
+        <label for="editVendorName">Vendor Name</label>
+        <input type="text" id="editVendorName" required />
+      </div>
+
+      <div class="form-group">
+        <label for="editVendorContactPerson">Contact Person</label>
+        <input type="text" id="editVendorContactPerson" />
+      </div>
+
+      <div class="form-group">
+        <label for="editVendorEmail">Email</label>
+        <input type="email" id="editVendorEmail" />
+      </div>
+
+      <div class="form-group">
+        <label for="editVendorPhone">Phone</label>
+        <input type="text" id="editVendorPhone" />
+      </div>
+
+      <div class="form-group">
+        <label for="editVendorStatus">Onboarding Status</label>
+        <select id="editVendorStatus">
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
+      <button type="submit" class="analyze-btn">Update Vendor</button>
+    </form>
+  </div>
+</div>
+
+<div id="pipelineLeadModal" class="lead-modal" style="display: none;">
+  <div class="lead-modal-content">
+    <div class="lead-modal-header">
+      <h3>Lead Details</h3>
+      <button type="button" class="lead-modal-close" onclick="closePipelineLeadModal()">×</button>
+    </div>
+
+    <div id="pipelineLeadModalContent" class="vendor-details-summary">
+      No lead selected.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/api.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/leads.js"></script>
+<script src="js/vendors.js"></script>
+<script src="js/pipeline.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/auth.js"></script>
+
+<script src="script.js"></script>
+</body>
+</html>
