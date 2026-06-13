@@ -4,6 +4,7 @@ import { showToast } from '../utils/toast';
 
 export default function Settings() {
   const { settings, updateSettings } = useSettings();
+  const [displayName, setDisplayName] = useState(settings.displayName || '');
   const [backendUrl, setBackendUrl] = useState(settings.backendUrl);
   const [theme, setTheme] = useState(settings.theme);
   const [sentimentWeight, setSentimentWeight] = useState(settings.sentimentWeight);
@@ -11,6 +12,7 @@ export default function Settings() {
   const [validationMsg, setValidationMsg] = useState('Sentiment weight + Rating weight must equal 100.');
 
   useEffect(() => {
+    setDisplayName(settings.displayName || '');
     setBackendUrl(settings.backendUrl);
     setTheme(settings.theme);
     setSentimentWeight(settings.sentimentWeight);
@@ -19,7 +21,7 @@ export default function Settings() {
 
   const handleAppSubmit = (e) => {
     e.preventDefault();
-    updateSettings({ backendUrl, theme });
+    updateSettings({ displayName, backendUrl, theme });
     showToast('Application settings saved.', 'success');
   };
 
@@ -44,10 +46,14 @@ export default function Settings() {
         <div className="analytics-form-card">
           <h2>Application Preferences</h2>
           <form className="vendor-review-form" onSubmit={handleAppSubmit}>
-            <div className="form-group">
-              <label>Backend URL</label>
-              <input type="text" value={backendUrl} onChange={e => setBackendUrl(e.target.value)} placeholder="http://127.0.0.1:8000" />
-            </div>
+    <div className="form-group">
+      <label>Display Name</label>
+      <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name" />
+    </div>
+    <div className="form-group">
+      <label>Backend URL</label>
+      <input type="text" value={backendUrl} onChange={e => setBackendUrl(e.target.value)} placeholder="http://127.0.0.1:8000" />
+    </div>
             <div className="form-group">
               <label>Theme</label>
               <select value={theme} onChange={e => setTheme(e.target.value)}>

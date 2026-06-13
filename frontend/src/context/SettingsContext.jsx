@@ -4,7 +4,8 @@ const DEFAULT_SETTINGS = {
   backendUrl: "http://127.0.0.1:8000",
   theme: "light",
   sentimentWeight: 50,
-  ratingWeight: 50
+  ratingWeight: 50,
+  displayName: ""
 };
 
 function getStored() {

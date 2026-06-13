@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const links = [
   { to: '/', label: 'Dashboard' },
@@ -14,7 +15,8 @@ const links = [
 
 export default function Sidebar({ collapsed, onToggle }) {
   const { user } = useAuth();
-  const displayName = user?.email?.split('@')[0] || 'User';
+  const { settings } = useSettings();
+  const displayName = settings.displayName || user?.email?.split('@')[0] || 'User';
   const firstLetter = displayName.charAt(0).toUpperCase();
 
   return (
