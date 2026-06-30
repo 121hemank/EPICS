@@ -88,12 +88,13 @@ CREATE POLICY "Users can view members of their organizations"
   ON organization_members FOR SELECT
   USING (organization_id IN (SELECT get_user_org_ids()));
 
+CREATE POLICY "Users can add themselves to organizations"
+  ON organization_members FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+
 CREATE POLICY "Admins can manage members"
   ON organization_members FOR INSERT
-  WITH CHECK (
-    organization_id IN (SELECT get_user_org_ids())
-    AND check_org_role(organization_id, 'admin')
-  );
+  WITH CHECK (check_org_role(organization_id, 'admin'));
 
 CREATE POLICY "Admins can update members"
   ON organization_members FOR UPDATE

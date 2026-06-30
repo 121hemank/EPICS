@@ -82,11 +82,13 @@ CREATE POLICY "Admins can update their organization" ON organizations FOR UPDATE
 -- organization_members
 ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view members of their organizations" ON organization_members;
+DROP POLICY IF EXISTS "Users can add themselves to organizations" ON organization_members;
 DROP POLICY IF EXISTS "Admins can manage members" ON organization_members;
 DROP POLICY IF EXISTS "Admins can update members" ON organization_members;
 DROP POLICY IF EXISTS "Admins can delete members" ON organization_members;
 CREATE POLICY "Users can view members of their organizations" ON organization_members FOR SELECT USING (organization_id IN (SELECT get_user_org_ids()));
-CREATE POLICY "Admins can manage members" ON organization_members FOR INSERT WITH CHECK (organization_id IN (SELECT get_user_org_ids()) AND check_org_role(organization_id, 'admin'));
+CREATE POLICY "Users can add themselves to organizations" ON organization_members FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Admins can manage members" ON organization_members FOR INSERT WITH CHECK (check_org_role(organization_id, 'admin'));
 CREATE POLICY "Admins can update members" ON organization_members FOR UPDATE USING (check_org_role(organization_id, 'admin')) WITH CHECK (check_org_role(organization_id, 'admin'));
 CREATE POLICY "Admins can delete members" ON organization_members FOR DELETE USING (check_org_role(organization_id, 'admin'));
 
