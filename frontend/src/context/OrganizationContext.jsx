@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Outlet } from 'react-router-dom';
 import { supabase } from '../lib/supabase-client';
 import { useAuth } from './AuthContext';
 
 const OrganizationContext = createContext(null);
 
-export function OrganizationProvider({ children }) {
+export function OrganizationProvider() {
   const { user } = useAuth();
   const [organizations, setOrganizations] = useState([]);
   const [currentOrg, setCurrentOrg] = useState(null);
@@ -23,16 +24,14 @@ export function OrganizationProvider({ children }) {
     }
 
     try {
-      console.log('loadOrgs: fetching memberships for user', user.id);
       const { data: memberships, error } = await supabase
         .from('organization_members')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
-      if (error) { console.error('loadOrgs: membership query error', error); throw error; }
+      if (error) throw error;
 
-      console.log('loadOrgs: memberships result', memberships);
       if (!memberships || memberships.length === 0) {
         setOrganizations([]);
         setCurrentOrg(null);
@@ -43,15 +42,13 @@ export function OrganizationProvider({ children }) {
       }
 
       const orgIds = memberships.map(m => m.organization_id);
-      console.log('loadOrgs: fetching orgs by ids', orgIds);
       const { data: orgs, error: orgsError } = await supabase
         .from('organizations')
         .select('*')
         .in('id', orgIds);
 
-      if (orgsError) { console.error('loadOrgs: orgs query error', orgsError); throw orgsError; }
+      if (orgsError) throw orgsError;
 
-      console.log('loadOrgs: orgs result', orgs);
       setOrganizations(orgs || []);
       setMembership(memberships[0]);
 
@@ -60,7 +57,6 @@ export function OrganizationProvider({ children }) {
         ? orgs.find(o => o.id === storedOrgId)
         : orgs?.[0] || null;
 
-      console.log('loadOrgs: setting currentOrg to', target?.id);
       setCurrentOrg(target);
 
       if (target) {
@@ -73,7 +69,7 @@ export function OrganizationProvider({ children }) {
         setMembership(current || memberships[0]);
       }
     } catch (err) {
-      console.error('loadOrgs: FAILED', err);
+      console.error('Failed to load organizations:', err);
     } finally {
       setLoading(false);
     }
@@ -131,7 +127,7 @@ export function OrganizationProvider({ children }) {
       refreshMembers,
       reloadOrgs: loadOrgs,
     }}>
-      {children}
+      <Outlet />
     </OrganizationContext.Provider>
   );
 }

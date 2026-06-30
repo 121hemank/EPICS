@@ -24,15 +24,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <OrganizationProvider>
-          <SettingsProvider>
-            <Routes>
-              <Route element={<AuthLayout />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-              </Route>
-              <Route element={<ProtectedRoute />}>
-                <Route path="/org-setup" element={<OrgSetup />} />
+        <SettingsProvider>
+          <Routes>
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/org-setup" element={<OrgSetup />} />
+              <Route element={<OrganizationProvider />}>
                 <Route element={<OrgGuard />}>
                   <Route element={<DashboardLayout />}>
                     <Route path="/" element={<Dashboard />} />
@@ -47,11 +47,11 @@ export default function App() {
                   </Route>
                 </Route>
               </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <ToastContainer />
-          </SettingsProvider>
-        </OrganizationProvider>
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          <ToastContainer />
+        </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   );
