@@ -1,15 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { createOrganization } from '../lib/supabase';
-import { useOrganization } from '../context/OrganizationContext';
 import { showToast } from '../utils/toast';
 
 export default function OrgSetup() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('Create your company workspace.');
-  const navigate = useNavigate();
-  const { reloadOrgs, switchOrg } = useOrganization();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,10 +17,9 @@ export default function OrgSetup() {
     setMessage('Creating organization...');
     try {
       const org = await createOrganization(name.trim());
-      await reloadOrgs();
-      await switchOrg(org.id);
+      localStorage.setItem('epics_current_org_id', org.id);
       showToast('Organization created!', 'success');
-      navigate('/');
+      window.location.href = '/';
     } catch (err) {
       setMessage(`Error: ${err.message}`);
       showToast('Failed to create organization.', 'error');
