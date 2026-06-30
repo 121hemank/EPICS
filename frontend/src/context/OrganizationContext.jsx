@@ -23,14 +23,16 @@ export function OrganizationProvider({ children }) {
     }
 
     try {
+      console.log('loadOrgs: fetching memberships for user', user.id);
       const { data: memberships, error } = await supabase
         .from('organization_members')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
-      if (error) throw error;
+      if (error) { console.error('loadOrgs: membership query error', error); throw error; }
 
+      console.log('loadOrgs: memberships result', memberships);
       if (!memberships || memberships.length === 0) {
         setOrganizations([]);
         setCurrentOrg(null);
@@ -41,13 +43,15 @@ export function OrganizationProvider({ children }) {
       }
 
       const orgIds = memberships.map(m => m.organization_id);
+      console.log('loadOrgs: fetching orgs by ids', orgIds);
       const { data: orgs, error: orgsError } = await supabase
         .from('organizations')
         .select('*')
         .in('id', orgIds);
 
-      if (orgsError) throw orgsError;
+      if (orgsError) { console.error('loadOrgs: orgs query error', orgsError); throw orgsError; }
 
+      console.log('loadOrgs: orgs result', orgs);
       setOrganizations(orgs || []);
       setMembership(memberships[0]);
 
@@ -56,6 +60,7 @@ export function OrganizationProvider({ children }) {
         ? orgs.find(o => o.id === storedOrgId)
         : orgs?.[0] || null;
 
+      console.log('loadOrgs: setting currentOrg to', target?.id);
       setCurrentOrg(target);
 
       if (target) {
@@ -68,7 +73,7 @@ export function OrganizationProvider({ children }) {
         setMembership(current || memberships[0]);
       }
     } catch (err) {
-      console.error('Failed to load organizations:', err);
+      console.error('loadOrgs: FAILED', err);
     } finally {
       setLoading(false);
     }
