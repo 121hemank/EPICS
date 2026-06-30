@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase-client';
 import { useAuth } from './AuthContext';
-import { showToast } from '../utils/toast';
 
 const OrganizationContext = createContext(null);
 
@@ -26,31 +25,47 @@ export function OrganizationProvider({ children }) {
     try {
       const { data: memberships, error } = await supabase
         .from('organization_members')
-        .select('*, organization:organizations(*)')
-        .eq('user_id', user.id);
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
       if (error) throw error;
 
-      const orgs = (memberships || []).map(m => m.organization);
-      setOrganizations(orgs);
-      setMembership(memberships?.[0] || null);
-      setMembers([]);
+      if (!memberships || memberships.length === 0) {
+        setOrganizations([]);
+        setCurrentOrg(null);
+        setMembership(null);
+        setMembers([]);
+        setLoading(false);
+        return;
+      }
+
+      const orgIds = memberships.map(m => m.organization_id);
+      const { data: orgs, error: orgsError } = await supabase
+        .from('organizations')
+        .select('*')
+        .in('id', orgIds);
+
+      if (orgsError) throw orgsError;
+
+      setOrganizations(orgs || []);
+      setMembership(memberships[0]);
 
       const storedOrgId = localStorage.getItem('epics_current_org_id');
-      const target = storedOrgId && orgs.find(o => o.id === storedOrgId)
+      const target = storedOrgId && orgs?.find(o => o.id === storedOrgId)
         ? orgs.find(o => o.id === storedOrgId)
-        : orgs[0] || null;
+        : orgs?.[0] || null;
 
       setCurrentOrg(target);
 
       if (target) {
         const { data: orgMembers } = await supabase
           .from('organization_members')
-          .select('*, user:auth.users!inner(id, email)')
+          .select('*')
           .eq('organization_id', target.id);
         setMembers(orgMembers || []);
-        const current = (memberships || []).find(m => m.organization_id === target.id);
-        setMembership(current || null);
+        const current = memberships.find(m => m.organization_id === target.id);
+        setMembership(current || memberships[0]);
       }
     } catch (err) {
       console.error('Failed to load organizations:', err);
@@ -71,7 +86,7 @@ export function OrganizationProvider({ children }) {
 
     const { data: orgMembers } = await supabase
       .from('organization_members')
-      .select('*, user:auth.users!inner(id, email)')
+      .select('*')
       .eq('organization_id', orgId);
     setMembers(orgMembers || []);
 
@@ -88,7 +103,7 @@ export function OrganizationProvider({ children }) {
     if (!currentOrg) return;
     const { data: orgMembers } = await supabase
       .from('organization_members')
-      .select('*, user:auth.users!inner(id, email)')
+      .select('*')
       .eq('organization_id', currentOrg.id);
     setMembers(orgMembers || []);
   }, [currentOrg]);

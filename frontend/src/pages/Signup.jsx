@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { signUp, createOrganization } from '../lib/supabase';
 
 export default function Signup() {
@@ -7,7 +7,6 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('Create a new account.');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,14 +17,14 @@ export default function Signup() {
         try {
           await createOrganization(companyName.trim() || 'My Company');
           setMessage('Account created! Redirecting...');
-          navigate('/');
+          window.location.href = '/';
           return;
         } catch {
           // Org creation failed — user may need email confirmation
         }
       }
       setMessage('Account created! Check your email for the confirmation link.');
-      setTimeout(() => navigate('/login'), 3000);
+      setTimeout(() => window.location.href = '/login', 3000);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
     }
