@@ -43,17 +43,6 @@ export default function OrgSetup() {
       if (memberError) throw memberError;
 
       localStorage.setItem('epics_current_org_id', uuid);
-
-      // Verify inserts
-      const { data: checkMembership, error: checkError } = await supabase
-        .from('organization_members')
-        .select('id')
-        .eq('organization_id', uuid)
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (checkError) throw checkError;
-      if (!checkMembership) throw new Error('Organization was created but membership was not saved.');
-
       setMessage('Created! Redirecting...');
       window.location.replace('/');
     } catch (err) {
