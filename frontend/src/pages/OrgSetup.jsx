@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createOrganization } from '../lib/supabase';
+import { supabase } from '../lib/supabase-client';
 import { showToast } from '../utils/toast';
 
 export default function OrgSetup() {
@@ -16,8 +16,33 @@ export default function OrgSetup() {
     setLoading(true);
     setMessage('Creating organization...');
     try {
-      const org = await createOrganization(name.trim());
-      localStorage.setItem('epics_current_org_id', org.id);
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        setMessage('Error: You must be logged in.');
+        setLoading(false);
+        return;
+      }
+
+      const uuid = typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+
+      const { error: orgError } = await supabase
+        .from('organizations')
+        .insert([{ id: uuid, name: name.trim() }]);
+      if (orgError) throw orgError;
+
+      const { error: memberError } = await supabase
+        .from('organization_members')
+        .insert([{
+          organization_id: uuid,
+          user_id: user.id,
+          role: 'admin',
+          status: 'active'
+        }]);
+      if (memberError) throw memberError;
+
+      localStorage.setItem('epics_current_org_id', uuid);
       showToast('Organization created!', 'success');
       window.location.href = '/';
     } catch (err) {
