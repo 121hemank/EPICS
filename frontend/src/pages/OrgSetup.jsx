@@ -43,8 +43,7 @@ export default function OrgSetup() {
       if (memberError) throw memberError;
 
       localStorage.setItem('epics_current_org_id', uuid);
-      showToast('Organization created!', 'success');
-      window.location.href = '/';
+      window.location.replace('/');
     } catch (err) {
       setMessage(`Error: ${err.message}`);
       showToast('Failed to create organization.', 'error');
