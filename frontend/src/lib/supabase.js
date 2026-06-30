@@ -28,30 +28,133 @@ export async function getCurrentUser() {
   return data.user;
 }
 
+// ---- Organizations ----
+export async function createOrganization(name) {
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!user) throw new Error('Not authenticated');
+
+  const { data: org, error: orgError } = await supabase
+    .from('organizations')
+    .insert([{ name }])
+    .select()
+    .single();
+  if (orgError) throw orgError;
+
+  const { error: memberError } = await supabase
+    .from('organization_members')
+    .insert([{
+      organization_id: org.id,
+      user_id: user.id,
+      role: 'admin',
+      status: 'active'
+    }]);
+  if (memberError) throw memberError;
+
+  return org;
+}
+
+export async function updateOrganization(orgId, payload) {
+  const { error } = await supabase
+    .from('organizations')
+    .update(payload)
+    .eq('id', orgId);
+  if (error) throw error;
+}
+
+export async function inviteMember(orgId, email, role) {
+  const { data: invitedUser, error: userError } = await supabase
+    .from('auth.users')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (userError || !invitedUser) {
+    throw new Error('User not found. They must sign up first.');
+  }
+
+  const currentUser = (await supabase.auth.getUser()).data.user;
+
+  const { error } = await supabase
+    .from('organization_members')
+    .insert([{
+      organization_id: orgId,
+      user_id: invitedUser.id,
+      role,
+      status: 'pending',
+      invited_by: currentUser.id
+    }]);
+  if (error) throw error;
+}
+
+export async function updateMemberRole(memberId, role) {
+  const { error } = await supabase
+    .from('organization_members')
+    .update({ role })
+    .eq('id', memberId);
+  if (error) throw error;
+}
+
+export async function removeMember(memberId) {
+  const { error } = await supabase
+    .from('organization_members')
+    .delete()
+    .eq('id', memberId);
+  if (error) throw error;
+}
+
+export async function loadPendingInvites(userId) {
+  const { data, error } = await supabase
+    .from('organization_members')
+    .select('*, organization:organizations(*)')
+    .eq('user_id', userId)
+    .eq('status', 'pending');
+  if (error) { console.error(error); return []; }
+  return data || [];
+}
+
+export async function acceptInvite(memberId) {
+  const { error } = await supabase
+    .from('organization_members')
+    .update({ status: 'active' })
+    .eq('id', memberId);
+  if (error) throw error;
+}
+
+export async function declineInvite(memberId) {
+  const { error } = await supabase
+    .from('organization_members')
+    .delete()
+    .eq('id', memberId);
+  if (error) throw error;
+}
+
 // ---- Vendor Scores ----
-export async function loadVendorScores() {
+export async function loadVendorScores(orgId) {
   const { data, error } = await supabase
     .from("vendor_scores")
     .select("*")
+    .eq("organization_id", orgId)
     .order("updated_at", { ascending: false });
   if (error) { console.error(error); return []; }
   return data || [];
 }
 
-export async function loadVendorScoreByName(vendorName) {
+export async function loadVendorScoreByName(vendorName, orgId) {
   const { data, error } = await supabase
     .from("vendor_scores")
     .select("*")
-    .ilike("vendor_name", vendorName);
+    .ilike("vendor_name", vendorName)
+    .eq("organization_id", orgId);
   if (error) { console.error(error); return null; }
   return data && data.length ? data[0] : null;
 }
 
-export async function upsertVendorScore(vendorName, rating, finalSentiment, finalScore) {
+export async function upsertVendorScore(vendorName, rating, finalSentiment, finalScore, orgId) {
   const { data: existing, error: fetchError } = await supabase
     .from("vendor_scores")
     .select("*")
     .eq("vendor_name", vendorName)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (fetchError) throw fetchError;
 
@@ -63,6 +166,7 @@ export async function upsertVendorScore(vendorName, rating, finalSentiment, fina
   if (!existing) {
     const { error } = await supabase.from("vendor_scores").insert([{
       vendor_name: vendorName,
+      organization_id: orgId,
       total_reviews: 1,
       avg_rating: Number(rating),
       positive_reviews: positive,
@@ -86,16 +190,18 @@ export async function upsertVendorScore(vendorName, rating, finalSentiment, fina
         vendor_score: vendorScore,
         updated_at: new Date().toISOString()
       })
-      .eq("vendor_name", vendorName);
+      .eq("vendor_name", vendorName)
+      .eq("organization_id", orgId);
     if (error) throw error;
   }
 }
 
 // ---- Vendors ----
-export async function loadVendors() {
+export async function loadVendors(orgId) {
   const { data, error } = await supabase
     .from("vendors")
     .select("*")
+    .eq("organization_id", orgId)
     .order("created_at", { ascending: false });
   if (error) { console.error(error); return []; }
   return data || [];
@@ -117,47 +223,54 @@ export async function saveVendorReview(payload) {
   if (error) throw error;
 }
 
-export async function loadReviewHistory() {
+export async function loadReviewHistory(orgId) {
   const { data, error } = await supabase
     .from("vendor_reviews")
     .select("*")
+    .eq("organization_id", orgId)
     .order("created_at", { ascending: false })
     .limit(10);
   if (error) { console.error(error); return []; }
   return data || [];
 }
 
-export async function loadAllVendorReviews() {
-  const { data, error } = await supabase.from("vendor_reviews").select("*");
+export async function loadAllVendorReviews(orgId) {
+  const { data, error } = await supabase
+    .from("vendor_reviews")
+    .select("*")
+    .eq("organization_id", orgId);
   if (error) { console.error(error); return []; }
   return data || [];
 }
 
-export async function loadVendorReviewsByName(vendorName) {
+export async function loadVendorReviewsByName(vendorName, orgId) {
   const { data, error } = await supabase
     .from("vendor_reviews")
     .select("*")
     .ilike("vendor_name", vendorName)
+    .eq("organization_id", orgId)
     .order("created_at", { ascending: false });
   if (error) { console.error(error); return []; }
   return data || [];
 }
 
 // ---- Customers ----
-export async function loadCustomers() {
+export async function loadCustomers(orgId) {
   const { data, error } = await supabase
     .from("customers")
     .select("*")
+    .eq("organization_id", orgId)
     .order("latest_review_date", { ascending: false });
   if (error) { console.error(error); return []; }
   return data || [];
 }
 
-export async function upsertCustomer(customerName, vendorName, rating, reviewText) {
+export async function upsertCustomer(customerName, vendorName, rating, reviewText, orgId) {
   const { data: existing, error: fetchError } = await supabase
     .from("customers")
     .select("*")
     .eq("customer_name", customerName)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (fetchError) throw fetchError;
 
@@ -166,6 +279,7 @@ export async function upsertCustomer(customerName, vendorName, rating, reviewTex
   if (!existing) {
     const { error } = await supabase.from("customers").insert([{
       customer_name: customerName,
+      organization_id: orgId,
       vendor_name: vendorName,
       total_reviews: 1,
       avg_rating: Number(rating),
@@ -187,7 +301,8 @@ export async function upsertCustomer(customerName, vendorName, rating, reviewTex
         latest_review_date: latestReviewDate,
         status: "Active"
       })
-      .eq("customer_name", customerName);
+      .eq("customer_name", customerName)
+      .eq("organization_id", orgId);
     if (error) throw error;
   }
 }
@@ -198,10 +313,11 @@ export async function saveLead(payload) {
   if (error) throw error;
 }
 
-export async function loadLeads() {
+export async function loadLeads(orgId) {
   const { data, error } = await supabase
     .from("leads")
     .select("*")
+    .eq("organization_id", orgId)
     .order("created_at", { ascending: false });
   if (error) { console.error(error); return []; }
   return data || [];
@@ -217,17 +333,19 @@ export async function deleteLeadById(leadId) {
   if (error) throw error;
 }
 
-export async function upsertVendorFromLead(lead) {
+export async function upsertVendorFromLead(lead, orgId) {
   const { data: existing, error: fetchError } = await supabase
     .from("vendors")
     .select("*")
     .eq("vendor_name", lead.vendor_name)
+    .eq("organization_id", orgId)
     .maybeSingle();
   if (fetchError) throw fetchError;
 
   if (!existing) {
     const { error } = await supabase.from("vendors").insert([{
       vendor_name: lead.vendor_name,
+      organization_id: orgId,
       contact_person: lead.contact_person,
       contact_email: lead.contact_email,
       contact_phone: lead.contact_phone,
@@ -242,7 +360,7 @@ export async function upsertVendorFromLead(lead) {
       contact_phone: lead.contact_phone,
       onboarding_status: "Active",
       source_lead_id: lead.id
-    }).eq("vendor_name", lead.vendor_name);
+    }).eq("vendor_name", lead.vendor_name).eq("organization_id", orgId);
     if (error) throw error;
   }
 }

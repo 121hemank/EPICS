@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import { loadVendorScores, loadVendors, loadLeads, loadCustomers, loadVendorScoreByName, loadVendorReviewsByName } from '../lib/supabase';
 import { formatDateTime, getCustomerStatus } from '../utils/helpers';
@@ -13,6 +14,7 @@ import { Line, Doughnut, Bar } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler);
 
 export default function Dashboard() {
+  const { currentOrg } = useOrganization();
   const [searchParams] = useSearchParams();
   const [vendorScores, setVendorScores] = useState([]);
   const [approvedVendors, setApprovedVendors] = useState([]);
@@ -23,9 +25,12 @@ export default function Dashboard() {
   const [vendorDetail, setVendorDetail] = useState(null);
   const [vendorReviews, setVendorReviews] = useState([]);
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
+    if (!orgId) return;
     const [vs, av, ld, cust] = await Promise.all([
-      loadVendorScores(), loadVendors(), loadLeads(), loadCustomers()
+      loadVendorScores(orgId), loadVendors(orgId), loadLeads(orgId), loadCustomers(orgId)
     ]);
     const approvedNames = av.map(v => v.vendor_name);
     setVendorScores(vs.filter(v => approvedNames.includes(v.vendor_name)));
@@ -49,13 +54,13 @@ export default function Dashboard() {
   }, [searchParams, approvedVendors, customers, leads]);
 
   useEffect(() => {
-    if (!selectedVendor) { setVendorDetail(null); setVendorReviews([]); return; }
+    if (!selectedVendor || !orgId) { setVendorDetail(null); setVendorReviews([]); return; }
     (async () => {
-      const [vs, vr] = await Promise.all([loadVendorScoreByName(selectedVendor), loadVendorReviewsByName(selectedVendor)]);
+      const [vs, vr] = await Promise.all([loadVendorScoreByName(selectedVendor, orgId), loadVendorReviewsByName(selectedVendor, orgId)]);
       setVendorDetail(vs);
       setVendorReviews(vr);
     })();
-  }, [selectedVendor]);
+  }, [selectedVendor, orgId]);
 
   const totalReviews = vendorScores.reduce((s, v) => s + Number(v.total_reviews || 0), 0);
   const avgScore = vendorScores.length ? (vendorScores.reduce((s, v) => s + Number(v.vendor_score || 0), 0) / vendorScores.length) : 0;

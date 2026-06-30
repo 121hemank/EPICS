@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOrganization } from '../context/OrganizationContext';
 import { loadVendorScores, loadVendors, loadAllVendorReviews } from '../lib/supabase';
 import {
   Chart as ChartJS,
@@ -9,15 +10,19 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 export default function Performance() {
+  const { currentOrg } = useOrganization();
   const [vendorScores, setVendorScores] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
-    const [vs, av, reviews] = await Promise.all([loadVendorScores(), loadVendors(), loadAllVendorReviews()]);
+    if (!orgId) return;
+    const [vs, av, reviews] = await Promise.all([loadVendorScores(orgId), loadVendors(orgId), loadAllVendorReviews(orgId)]);
     const approvedNames = av.map(v => v.vendor_name);
     setVendorScores(vs.filter(v => approvedNames.includes(v.vendor_name)));
     setAllReviews(reviews);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

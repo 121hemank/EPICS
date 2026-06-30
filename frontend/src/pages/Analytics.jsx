@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOrganization } from '../context/OrganizationContext';
 import { loadVendors, saveVendorReview, upsertVendorScore, upsertCustomer } from '../lib/supabase';
 import { analyzeReviewWithBackend } from '../lib/api';
 import { sentimentToScore, scoreToSentiment } from '../utils/helpers';
@@ -6,6 +7,7 @@ import { showToast } from '../utils/toast';
 import { useSettings } from '../context/SettingsContext';
 
 export default function Analytics() {
+  const { currentOrg } = useOrganization();
   const { settings } = useSettings();
   const [vendors, setVendors] = useState([]);
   const [form, setForm] = useState({ customerName: '', vendorName: '', rating: '', reviewText: '' });
@@ -14,10 +16,13 @@ export default function Analytics() {
   const [status, setStatus] = useState('No analysis yet.');
   const [errors, setErrors] = useState({});
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
-    const v = await loadVendors();
+    if (!orgId) return;
+    const v = await loadVendors(orgId);
     setVendors(v);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -60,6 +65,7 @@ export default function Analytics() {
       await saveVendorReview({
         customer_name: form.customerName.trim(),
         vendor_name: form.vendorName,
+        organization_id: orgId,
         rating: Number(form.rating),
         customer_review: form.reviewText.trim(),
         bertweet_prediction: bertweetPred,
@@ -69,8 +75,8 @@ export default function Analytics() {
         final_sentiment: finalSentiment,
         final_score: finalScore
       });
-      await upsertVendorScore(form.vendorName, form.rating, finalSentiment, finalScore);
-      await upsertCustomer(form.customerName.trim(), form.vendorName, form.rating, form.reviewText.trim());
+      await upsertVendorScore(form.vendorName, form.rating, finalSentiment, finalScore, orgId);
+      await upsertCustomer(form.customerName.trim(), form.vendorName, form.rating, form.reviewText.trim(), orgId);
 
       setResult({ bertweetPred, bertweetConf, robertaPred, robertaConf, finalSentiment, finalScore });
       setStatus('Review analyzed and vendor score updated successfully.');

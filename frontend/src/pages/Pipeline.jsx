@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
 import { loadLeads, updateLead } from '../lib/supabase';
@@ -22,6 +23,7 @@ function getPrevStage(stage) {
 const columns = ['Prospecting', 'Negotiation', 'Closing', 'Won', 'Lost'];
 
 export default function Pipeline() {
+  const { currentOrg } = useOrganization();
   const [leads, setLeads] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -30,10 +32,13 @@ export default function Pipeline() {
   const [detailModal, setDetailModal] = useState(false);
   const [detailLead, setDetailLead] = useState(null);
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
-    const data = await loadLeads();
+    if (!orgId) return;
+    const data = await loadLeads(orgId);
     setLeads(data);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

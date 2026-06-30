@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
 import { loadLeads, saveLead, updateLead, deleteLeadById, upsertVendorFromLead, deleteVendorByLead } from '../lib/supabase';
@@ -7,6 +8,7 @@ import { downloadCSV } from '../utils/csv';
 import { showToast } from '../utils/toast';
 
 export default function Leads() {
+  const { currentOrg } = useOrganization();
   const [allLeads, setAllLeads] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -16,10 +18,13 @@ export default function Leads() {
   const [editModal, setEditModal] = useState(false);
   const [editLead, setEditLead] = useState(null);
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
-    const data = await loadLeads();
+    if (!orgId) return;
+    const data = await loadLeads(orgId);
     setAllLeads(data);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -44,7 +49,8 @@ export default function Leads() {
       stage: fd.get('stage'),
       priority: fd.get('priority'),
       status: fd.get('status'),
-      notes: fd.get('notes')
+      notes: fd.get('notes'),
+      organization_id: orgId
     };
     if (!payload.vendor_name || !payload.contact_person) {
       showToast('Vendor name and contact person are required.', 'error'); return;
@@ -99,7 +105,7 @@ export default function Leads() {
     const lead = allLeads.find(l => Number(l.id) === Number(id));
     if (!lead) return;
     try {
-      await upsertVendorFromLead(lead);
+      await upsertVendorFromLead(lead, orgId);
       await updateLead(id, { status: 'Won', stage: 'Closing' });
       await loadData();
       showToast('Lead converted to active vendor.', 'success');

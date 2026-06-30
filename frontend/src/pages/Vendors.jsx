@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
 import { loadVendors, updateVendor, deleteVendor, deleteVendorScoresByName, deleteVendorReviewsByName, unlinkCustomerVendor } from '../lib/supabase';
@@ -7,16 +8,20 @@ import { downloadCSV } from '../utils/csv';
 import { showToast } from '../utils/toast';
 
 export default function Vendors() {
+  const { currentOrg } = useOrganization();
   const [vendors, setVendors] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [editModal, setEditModal] = useState(false);
   const [editVendor, setEditVendor] = useState(null);
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
-    const data = await loadVendors();
+    if (!orgId) return;
+    const data = await loadVendors(orgId);
     setVendors(data);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

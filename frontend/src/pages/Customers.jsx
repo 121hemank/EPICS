@@ -1,18 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useOrganization } from '../context/OrganizationContext';
 import { loadCustomers } from '../lib/supabase';
 import { formatDateTime, getCustomerStatus } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
 
 export default function Customers() {
+  const { currentOrg } = useOrganization();
   const [customers, setCustomers] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
 
+  const orgId = currentOrg?.id;
+
   const loadData = useCallback(async () => {
-    const data = await loadCustomers();
+    if (!orgId) return;
+    const data = await loadCustomers(orgId);
     setCustomers(data);
     setFiltered(data);
-  }, []);
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

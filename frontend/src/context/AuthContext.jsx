@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase-client';
+import { showToast } from '../utils/toast';
 
 const AuthContext = createContext(null);
 
@@ -20,8 +21,13 @@ export function AuthProvider({ children }) {
     return () => listener?.subscription?.unsubscribe();
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const { data } = await supabase.auth.getUser();
+    setUser(data?.user ?? null);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
