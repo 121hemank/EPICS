@@ -72,8 +72,10 @@ $$;
 
 -- organizations
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Authenticated users can create organizations" ON organizations;
 DROP POLICY IF EXISTS "Users can view their organizations" ON organizations;
 DROP POLICY IF EXISTS "Admins can update their organization" ON organizations;
+CREATE POLICY "Authenticated users can create organizations" ON organizations FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Users can view their organizations" ON organizations FOR SELECT USING (id IN (SELECT get_user_org_ids()));
 CREATE POLICY "Admins can update their organization" ON organizations FOR UPDATE USING (check_org_role(id, 'admin')) WITH CHECK (check_org_role(id, 'admin'));
 

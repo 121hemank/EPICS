@@ -68,6 +68,10 @@ $$;
 -- ---- organizations ----
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY "Authenticated users can create organizations"
+  ON organizations FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
 CREATE POLICY "Users can view their organizations"
   ON organizations FOR SELECT
   USING (id IN (SELECT get_user_org_ids()));
