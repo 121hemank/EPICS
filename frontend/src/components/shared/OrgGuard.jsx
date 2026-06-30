@@ -1,16 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useOrganization } from '../../context/OrganizationContext';
 
 export default function OrgGuard() {
-  const { currentOrg, organizations, loading } = useOrganization();
+  const { loading: authLoading } = useAuth();
+  const { currentOrg, organizations, loading: orgLoading } = useOrganization();
 
-  if (loading) return <div className="auth-loading" />;
+  if (authLoading || orgLoading) return <div className="auth-loading" />;
 
-  if (organizations.length === 0) {
-    return <Navigate to="/org-setup" replace />;
-  }
-
-  if (!currentOrg) {
+  if (organizations.length === 0 || !currentOrg) {
     return <Navigate to="/org-setup" replace />;
   }
 
