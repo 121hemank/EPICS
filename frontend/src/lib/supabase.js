@@ -33,24 +33,24 @@ export async function createOrganization(name) {
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error('Not authenticated');
 
-  const { data: org, error: orgError } = await supabase
+  const id = crypto.randomUUID();
+
+  const { error: orgError } = await supabase
     .from('organizations')
-    .insert([{ name }])
-    .select()
-    .single();
+    .insert([{ id, name }]);
   if (orgError) throw orgError;
 
   const { error: memberError } = await supabase
     .from('organization_members')
     .insert([{
-      organization_id: org.id,
+      organization_id: id,
       user_id: user.id,
       role: 'admin',
       status: 'active'
     }]);
   if (memberError) throw memberError;
 
-  return org;
+  return { id, name, created_at: new Date().toISOString() };
 }
 
 export async function updateOrganization(orgId, payload) {
