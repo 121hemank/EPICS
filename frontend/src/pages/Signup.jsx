@@ -17,8 +17,11 @@ export default function Signup() {
       if (data?.user) {
         try {
           await createOrganization(companyName.trim() || 'My Company');
+          setMessage('Account created! Redirecting...');
+          navigate('/');
+          return;
         } catch {
-          // Organization creation may fail if user needs to confirm email first
+          // Org creation failed — user may need email confirmation
         }
       }
       setMessage('Account created! Check your email for the confirmation link.');
