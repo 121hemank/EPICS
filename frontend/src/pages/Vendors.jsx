@@ -6,6 +6,7 @@ import { loadVendors, updateVendor, deleteVendor, deleteVendorScoresByName, dele
 import { formatDateTime, getVendorStatusBadgeClass } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
 import { showToast } from '../utils/toast';
+import Pagination, { usePagination, getPaginatedData } from '../components/shared/Pagination';
 
 export default function Vendors() {
   const { currentOrg } = useOrganization();
@@ -14,6 +15,7 @@ export default function Vendors() {
   const [search, setSearch] = useState('');
   const [editModal, setEditModal] = useState(false);
   const [editVendor, setEditVendor] = useState(null);
+  const [page, setPage] = useState(1);
 
   const orgId = currentOrg?.id;
 
@@ -33,6 +35,11 @@ export default function Vendors() {
       (v.contact_email || '').toLowerCase().includes(q)
     ));
   }, [search, vendors]);
+
+  const paginated = getPaginatedData(filtered, page, 25);
+  const { totalPages } = usePagination(filtered, 25);
+
+  useEffect(() => { setPage(1); }, [search]);
 
   const active = vendors.filter(v => (v.onboarding_status || '').toLowerCase() === 'active').length;
   const inactive = vendors.filter(v => (v.onboarding_status || '').toLowerCase() === 'inactive').length;
@@ -113,7 +120,7 @@ export default function Vendors() {
             <thead><tr><th>Vendor Name</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Status</th><th>Created At</th><th>Actions</th></tr></thead>
             <tbody>
               {filtered.length === 0 ? <tr><td colSpan="7">No approved vendors available yet.</td></tr> :
-                filtered.map(v => (
+                paginated.map(v => (
                   <tr key={v.id}>
                     <td>{v.vendor_name}</td><td>{v.contact_person || '-'}</td><td>{v.contact_email || '-'}</td><td>{v.contact_phone || '-'}</td>
                     <td><span className={getVendorStatusBadgeClass(v.onboarding_status)}>{v.onboarding_status}</span></td>
@@ -132,6 +139,7 @@ export default function Vendors() {
             </tbody>
           </table>
         </div>
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       <Modal open={editModal} onClose={() => setEditModal(false)} title="Edit Vendor">

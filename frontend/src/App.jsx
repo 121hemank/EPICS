@@ -7,6 +7,7 @@ import OrgGuard from './components/shared/OrgGuard';
 import AuthLayout from './components/layout/AuthLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ToastContainer from './components/shared/ToastContainer';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import OrgSetup from './pages/OrgSetup';
@@ -27,23 +28,23 @@ export default function App() {
         <SettingsProvider>
           <Routes>
             <Route element={<AuthLayout />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
+              <Route path="/signup" element={<ErrorBoundary><Signup /></ErrorBoundary>} />
             </Route>
             <Route element={<ProtectedRoute />}>
-              <Route path="/org-setup" element={<OrgSetup />} />
+              <Route path="/org-setup" element={<ErrorBoundary><OrgSetup /></ErrorBoundary>} />
               <Route element={<OrganizationProvider />}>
                 <Route element={<OrgGuard />}>
                   <Route element={<DashboardLayout />}>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/customers" element={<Customers />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/leads" element={<Leads />} />
-                    <Route path="/vendors" element={<Vendors />} />
-                    <Route path="/pipeline" element={<Pipeline />} />
-                    <Route path="/performance" element={<Performance />} />
-                    <Route path="/org-settings" element={<OrgSettings />} />
-                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+                    <Route path="/customers" element={<ErrorBoundary><Customers /></ErrorBoundary>} />
+                    <Route path="/analytics" element={<ErrorBoundary><Analytics /></ErrorBoundary>} />
+                    <Route path="/leads" element={<ErrorBoundary><Leads /></ErrorBoundary>} />
+                    <Route path="/vendors" element={<ErrorBoundary><Vendors /></ErrorBoundary>} />
+                    <Route path="/pipeline" element={<ErrorBoundary><Pipeline /></ErrorBoundary>} />
+                    <Route path="/performance" element={<ErrorBoundary><Performance /></ErrorBoundary>} />
+                    <Route path="/org-settings" element={<ErrorBoundary><OrgSettings /></ErrorBoundary>} />
+                    <Route path="/settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
                   </Route>
                 </Route>
               </Route>

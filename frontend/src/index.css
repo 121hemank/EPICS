@@ -901,6 +901,82 @@ body.dark .role-badge {
   .edit-btn, .won-btn, .lost-btn, .delete-btn { min-height: 36px; }
 }
 
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--card-bg, #fff);
+  color: var(--text, #1f2937);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: var(--accent, #6366f1);
+  color: #fff;
+  border-color: var(--accent, #6366f1);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-btn-active {
+  background: var(--accent, #6366f1);
+  color: #fff;
+  border-color: var(--accent, #6366f1);
+  font-weight: 600;
+}
+
+.page-ellipsis {
+  padding: 6px 4px;
+  color: var(--text-muted, #6b7280);
+}
+
+/* Error Boundary */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 40px 20px;
+}
+
+.error-boundary-content {
+  text-align: center;
+  max-width: 420px;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.error-boundary-content h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: var(--text, #1f2937);
+}
+
+.error-boundary-message {
+  color: var(--text-muted, #6b7280);
+  font-size: 14px;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
 @media (max-width: 480px) {
   .vendor-dashboard-grid { grid-template-columns: 1fr; }
 

@@ -6,5 +6,15 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true
+  },
+  preview: {
+    port: 4173
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+    exclude: ['e2e/**', 'node_modules/**']
   }
 });

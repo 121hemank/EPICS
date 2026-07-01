@@ -6,6 +6,7 @@ import { loadLeads, saveLead, updateLead, deleteLeadById, upsertVendorFromLead, 
 import { formatDateTime, getPriorityBadge, getStageBadgeClass, getStatusBadgeClass } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
 import { showToast } from '../utils/toast';
+import Pagination, { usePagination, getPaginatedData } from '../components/shared/Pagination';
 
 export default function Leads() {
   const { currentOrg } = useOrganization();
@@ -17,6 +18,7 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState('');
   const [editModal, setEditModal] = useState(false);
   const [editLead, setEditLead] = useState(null);
+  const [page, setPage] = useState(1);
 
   const orgId = currentOrg?.id;
 
@@ -147,8 +149,13 @@ export default function Leads() {
     downloadCSV(data, ['Vendor Name', 'Contact Person', 'Contact Email', 'Contact Phone', 'Stage', 'Priority', 'Status', 'Created At'], 'vendor_leads_report.csv');
   };
 
+  const paginated = getPaginatedData(filtered, page, 25);
+  const { totalPages } = usePagination(filtered, 25);
+
   const openLeads = allLeads.filter(l => (l.status || '').toLowerCase() === 'open').length;
   const highLeads = allLeads.filter(l => (l.priority || '').toLowerCase() === 'high').length;
+
+  useEffect(() => { setPage(1); }, [search, stageFilter, priorityFilter, statusFilter]);
 
   return (
     <>
@@ -243,7 +250,7 @@ export default function Leads() {
             </thead>
             <tbody>
               {filtered.length === 0 ? <tr><td colSpan="9">No leads available yet.</td></tr> :
-                filtered.map(l => (
+                paginated.map(l => (
                   <tr key={l.id}>
                     <td>{l.vendor_name}</td><td>{l.contact_person}</td><td>{l.contact_email || '-'}</td><td>{l.contact_phone || '-'}</td>
                     <td><span className={getStageBadgeClass(l.stage)}>{l.stage}</span></td>
@@ -265,6 +272,7 @@ export default function Leads() {
             </tbody>
           </table>
         </div>
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       <Modal open={editModal} onClose={() => setEditModal(false)} title="Edit Lead">
