@@ -80,41 +80,33 @@ export function OrganizationProvider() {
   }, [loadOrgs]);
 
   const switchOrg = useCallback(async (orgId) => {
-    try {
-      const org = organizations.find(o => o.id === orgId);
-      if (!org) return;
-      localStorage.setItem('epics_current_org_id', orgId);
-      setCurrentOrg(org);
+    const org = organizations.find(o => o.id === orgId);
+    if (!org) return;
+    localStorage.setItem('epics_current_org_id', orgId);
+    setCurrentOrg(org);
 
-      const { data: orgMembers } = await supabase
-        .from('organization_members')
-        .select('*')
-        .eq('organization_id', orgId);
-      setMembers(orgMembers || []);
+    const { data: orgMembers } = await supabase
+      .from('organization_members')
+      .select('*')
+      .eq('organization_id', orgId);
+    setMembers(orgMembers || []);
 
-      const { data: memberships } = await supabase
-        .from('organization_members')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('organization_id', orgId)
-        .single();
-      setMembership(memberships || null);
-    } catch (err) {
-      console.error('Failed to switch organization:', err);
-    }
+    const { data: memberships } = await supabase
+      .from('organization_members')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('organization_id', orgId)
+      .single();
+    setMembership(memberships || null);
   }, [organizations, user]);
 
   const refreshMembers = useCallback(async () => {
-    try {
-      if (!currentOrg) return;
-      const { data: orgMembers } = await supabase
-        .from('organization_members')
-        .select('*')
-        .eq('organization_id', currentOrg.id);
-      setMembers(orgMembers || []);
-    } catch (err) {
-      console.error('Failed to refresh members:', err);
-    }
+    if (!currentOrg) return;
+    const { data: orgMembers } = await supabase
+      .from('organization_members')
+      .select('*')
+      .eq('organization_id', currentOrg.id);
+    setMembers(orgMembers || []);
   }, [currentOrg]);
 
   const role = membership?.role || null;

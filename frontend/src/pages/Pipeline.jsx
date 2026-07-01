@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
-import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 import { loadLeads, updateLead } from '../lib/supabase';
 import { getPriorityBadge, getStatusBadgeClass } from '../utils/helpers';
 import { showToast } from '../utils/toast';
@@ -32,26 +31,13 @@ export default function Pipeline() {
   const [statusFilter, setStatusFilter] = useState('');
   const [detailModal, setDetailModal] = useState(false);
   const [detailLead, setDetailLead] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) {
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await loadLeads(orgId);
-      setLeads(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    if (!orgId) return;
+    const data = await loadLeads(orgId);
+    setLeads(data);
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -107,10 +93,6 @@ export default function Pipeline() {
       (l.status || '').toLowerCase() !== 'lost'
     );
   };
-
-  if (loading) return <LoadingSkeleton type="card" count={6} />;
-  if (error) return <div className="error-state"><p>Failed to load pipeline data: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
-  if (leads.length === 0) return <div className="empty-state"><h3>No Pipeline Data</h3><p>Leads will appear here once added. Create a lead to get started.</p></div>;
 
   const wonTotal = filtered.filter(l => (l.status || '').toLowerCase() === 'won').length;
   const highTotal = filtered.filter(l => (l.priority || '').toLowerCase() === 'high').length;

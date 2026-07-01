@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import { loadCustomers } from '../lib/supabase';
-import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 import { formatDateTime, getCustomerStatus } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
 import Pagination, { usePagination, getPaginatedData } from '../components/shared/Pagination';
@@ -12,27 +11,14 @@ export default function Customers() {
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) {
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await loadCustomers(orgId);
-      setCustomers(data);
-      setFiltered(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    if (!orgId) return;
+    const data = await loadCustomers(orgId);
+    setCustomers(data);
+    setFiltered(data);
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -50,10 +36,6 @@ export default function Customers() {
   const { totalPages } = usePagination(withStatus, 25);
 
   useEffect(() => { setPage(1); }, [search]);
-
-  if (loading) return <LoadingSkeleton type="table" count={5} />;
-  if (error) return <div className="error-state"><p>Failed to load customers: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
-  if (customers.length === 0) return <div className="empty-state"><h3>No Customers Found</h3><p>Add your first customer by submitting a vendor review from the Analytics page.</p></div>;
 
   const active = withStatus.filter(c => c.computedStatus === 'Active').length;
   const inactive = withStatus.filter(c => c.computedStatus === 'Inactive').length;

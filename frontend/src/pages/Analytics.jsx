@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import { loadVendors, saveVendorReview, upsertVendorScore, upsertCustomer } from '../lib/supabase';
-import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 import { analyzeReviewWithBackend } from '../lib/api';
 import { sentimentToScore, scoreToSentiment } from '../utils/helpers';
 import { showToast } from '../utils/toast';
@@ -12,30 +11,17 @@ export default function Analytics() {
   const { settings } = useSettings();
   const [vendors, setVendors] = useState([]);
   const [form, setForm] = useState({ customerName: '', vendorName: '', rating: '', reviewText: '' });
-  const [analyzing, setAnalyzing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState('No analysis yet.');
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) {
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-      const v = await loadVendors(orgId);
-      setVendors(v);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    if (!orgId) return;
+    const v = await loadVendors(orgId);
+    setVendors(v);
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -58,7 +44,7 @@ export default function Analytics() {
     const approved = vendors.some(v => v.vendor_name === form.vendorName);
     if (!approved) { showToast('Selected vendor is not approved.', 'error'); return; }
 
-    setAnalyzing(true);
+    setLoading(true);
     setResult(null);
     setStatus('Running AI analysis and updating vendor score...');
     try {
@@ -101,15 +87,11 @@ export default function Analytics() {
       setStatus(`Error: ${err.message}`);
       showToast('Analysis failed. Please try again.', 'error');
     } finally {
-      setAnalyzing(false);
+      setLoading(false);
     }
   };
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
-
-  if (loading) return <LoadingSkeleton type="card" count={3} />;
-  if (error) return <div className="error-state"><p>Failed to load vendors: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
-  if (vendors.length === 0) return <div className="empty-state"><h3>No Approved Vendors</h3><p>You need at least one approved vendor before submitting reviews. Add a vendor from the Vendors page.</p></div>;
 
   return (
     <>
@@ -149,8 +131,8 @@ export default function Analytics() {
               <textarea rows="6" placeholder="Write the customer review here." value={form.reviewText} onChange={set('reviewText')} className={errors.reviewText ? 'input-error' : ''} />
               {errors.reviewText && <div className="field-error">{errors.reviewText}</div>}
             </div>
-            <button type="submit" className="analyze-btn" disabled={analyzing}>
-              {analyzing ? 'Analyzing...' : 'Analyze with AI'}
+            <button type="submit" className="analyze-btn" disabled={loading}>
+              {loading ? 'Analyzing...' : 'Analyze with AI'}
             </button>
           </form>
         </div>

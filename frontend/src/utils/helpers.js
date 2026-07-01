@@ -19,10 +19,9 @@ export function sentimentToScore(sentiment) {
 }
 
 export function scoreToSentiment(score) {
-  if (score == null || isNaN(score)) return 'Unknown';
-  if (score >= 0.6) return 'Positive';
-  if (score >= 0.4) return 'Neutral';
-  return 'Negative';
+  if (score <= 2) return "Negative";
+  if (score <= 4) return "Neutral";
+  return "Positive";
 }
 
 export function getPriorityBadge(priority) {

@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
 export default function DashboardLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed] = useState(false);
 
   return (
     <div className="dashboard-glass-wrapper">
@@ -13,7 +13,7 @@ export default function DashboardLayout() {
       <div className="glass-orb glass-orb-3" />
       <Topbar />
       <div className="container">
-        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+        <Sidebar collapsed={collapsed} />
         <main className="main">
           <Outlet />
         </main>
