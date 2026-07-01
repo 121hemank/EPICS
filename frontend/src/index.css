@@ -1021,3 +1021,18 @@ body.dark .role-badge {
   .chart-canvas-wrap { min-height: 150px; height: 180px; }
   .topbar-title { font-size: 14px; }
 }
+
+.skeleton-table { padding: 1rem; }
+.skeleton-row { display: flex; gap: 1rem; margin-bottom: 0.75rem; }
+.skeleton-cell { height: 1.2rem; background: #e0e0e0; border-radius: 4px; flex: 1; animation: pulse 1.5s infinite; }
+.skeleton-cell-wide { flex: 2; }
+.skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; padding: 1rem; }
+.skeleton-card { padding: 1.5rem; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; }
+.skeleton-line { height: 1rem; background: #e0e0e0; border-radius: 4px; margin-bottom: 0.75rem; animation: pulse 1.5s infinite; }
+.skeleton-title { width: 60%; height: 1.3rem; }
+.skeleton-short { width: 40%; }
+.error-state { text-align: center; padding: 3rem 1rem; color: #d32f2f; }
+.error-state button { margin-top: 1rem; padding: 0.5rem 1.5rem; background: #d32f2f; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: #666; }
+.empty-state h3 { margin-bottom: 0.5rem; color: #333; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }

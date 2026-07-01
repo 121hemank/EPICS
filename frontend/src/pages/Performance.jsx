@@ -1,27 +1,36 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import { loadVendorScores, loadVendors, loadAllVendorReviews } from '../lib/supabase';
-import {
-  Chart as ChartJS,
-  CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend
-} from 'chart.js';
+import LoadingSkeleton from '../components/shared/LoadingSkeleton';
+import { ChartJS } from '../lib/chart-setup';
 import { Bar, Doughnut } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 export default function Performance() {
   const { currentOrg } = useOrganization();
   const [vendorScores, setVendorScores] = useState([]);
   const [allReviews, setAllReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) return;
-    const [vs, av, reviews] = await Promise.all([loadVendorScores(orgId), loadVendors(orgId), loadAllVendorReviews(orgId)]);
-    const approvedNames = av.map(v => v.vendor_name);
-    setVendorScores(vs.filter(v => approvedNames.includes(v.vendor_name)));
-    setAllReviews(reviews);
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const [vs, av, reviews] = await Promise.all([loadVendorScores(orgId), loadVendors(orgId), loadAllVendorReviews(orgId)]);
+      const approvedNames = av.map(v => v.vendor_name);
+      setVendorScores(vs.filter(v => approvedNames.includes(v.vendor_name)));
+      setAllReviews(reviews);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -48,6 +57,10 @@ export default function Performance() {
     labels: ['Positive', 'Neutral', 'Negative'],
     datasets: [{ data: [pos, neu, neg], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'], borderWidth: 1 }]
   } : null;
+
+  if (loading) return <LoadingSkeleton type="card" count={4} />;
+  if (error) return <div className="error-state"><p>Failed to load performance data: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
+  if (vendorScores.length === 0 && allReviews.length === 0) return <div className="empty-state"><h3>No Performance Data</h3><p>Vendor scores and reviews will appear here once vendors have been added and reviews analyzed.</p></div>;
 
   const top5 = [...vendorScores].sort((a, b) => Number(b.vendor_score) - Number(a.vendor_score)).slice(0, 5);
 

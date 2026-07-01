@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
+import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 import { loadVendors, updateVendor, deleteVendor, deleteVendorScoresByName, deleteVendorReviewsByName, unlinkCustomerVendor } from '../lib/supabase';
 import { formatDateTime, getVendorStatusBadgeClass } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
@@ -16,13 +17,26 @@ export default function Vendors() {
   const [editModal, setEditModal] = useState(false);
   const [editVendor, setEditVendor] = useState(null);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) return;
-    const data = await loadVendors(orgId);
-    setVendors(data);
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await loadVendors(orgId);
+      setVendors(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -40,6 +54,10 @@ export default function Vendors() {
   const { totalPages } = usePagination(filtered, 25);
 
   useEffect(() => { setPage(1); }, [search]);
+
+  if (loading) return <LoadingSkeleton type="table" count={5} />;
+  if (error) return <div className="error-state"><p>Failed to load vendors: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
+  if (vendors.length === 0) return <div className="empty-state"><h3>No Vendors Found</h3><p>Approved vendors will appear here. Convert a lead to add your first vendor.</p></div>;
 
   const active = vendors.filter(v => (v.onboarding_status || '').toLowerCase() === 'active').length;
   const inactive = vendors.filter(v => (v.onboarding_status || '').toLowerCase() === 'inactive').length;
@@ -78,9 +96,9 @@ export default function Vendors() {
     const vendor = vendors.find(v => Number(v.id) === Number(id));
     if (!vendor || !window.confirm(`Delete this vendor?\n\nThis will also remove its reviews and scores.`)) return;
     try {
-      await deleteVendorScoresByName(vendor.vendor_name);
-      await deleteVendorReviewsByName(vendor.vendor_name);
-      await unlinkCustomerVendor(vendor.vendor_name);
+      await deleteVendorScoresByName(vendor.vendor_name, orgId);
+      await deleteVendorReviewsByName(vendor.vendor_name, orgId);
+      await unlinkCustomerVendor(vendor.vendor_name, orgId);
       await deleteVendor(id, orgId, vendor.vendor_name);
       await loadData();
       showToast('Vendor and related analytics deleted successfully.', 'success');

@@ -3,9 +3,10 @@ import { useOrganization } from '../context/OrganizationContext';
 import { useAuth } from '../context/AuthContext';
 import { updateOrganization, inviteMember, updateMemberRole, removeMember } from '../lib/supabase';
 import { showToast } from '../utils/toast';
+import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 
 export default function OrgSettings() {
-  const { currentOrg, members, role, isAdmin, refreshMembers } = useOrganization();
+  const { currentOrg, members, role, isAdmin, refreshMembers, loading } = useOrganization();
   const { user } = useAuth();
   const [orgName, setOrgName] = useState(currentOrg?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
@@ -146,6 +147,9 @@ export default function OrgSettings() {
       <div className="vendor-table-card" style={{ marginTop: 20 }}>
         <div className="table-header"><h3>Team Members ({members.length})</h3></div>
         <div className="table-wrapper">
+          {loading ? (
+            <LoadingSkeleton type="table" count={4} />
+          ) : (
           <table>
             <thead>
               <tr>
@@ -198,6 +202,7 @@ export default function OrgSettings() {
               ))}
             </tbody>
           </table>
+          )}
         </div>
       </div>
     </>

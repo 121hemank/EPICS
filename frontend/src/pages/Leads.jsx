@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
+import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 import { loadLeads, saveLead, updateLead, deleteLeadById, upsertVendorFromLead, deleteVendorByLead } from '../lib/supabase';
 import { formatDateTime, getPriorityBadge, getStageBadgeClass, getStatusBadgeClass } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
@@ -19,13 +20,26 @@ export default function Leads() {
   const [editModal, setEditModal] = useState(false);
   const [editLead, setEditLead] = useState(null);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) return;
-    const data = await loadLeads(orgId);
-    setAllLeads(data);
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await loadLeads(orgId);
+      setAllLeads(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -128,7 +142,7 @@ export default function Leads() {
     if (!lead) return;
     if (!window.confirm(`Delete this lead and its linked vendor?\n\nVendor: ${lead.vendor_name}`)) return;
     try {
-      await deleteVendorByLead(lead);
+      await deleteVendorByLead(lead, orgId);
       await deleteLeadById(id, orgId, lead.vendor_name);
       await loadData();
       showToast('Lead and vendor deleted successfully.', 'success');
@@ -156,6 +170,10 @@ export default function Leads() {
   const highLeads = allLeads.filter(l => (l.priority || '').toLowerCase() === 'high').length;
 
   useEffect(() => { setPage(1); }, [search, stageFilter, priorityFilter, statusFilter]);
+
+  if (loading) return <LoadingSkeleton type="table" count={5} />;
+  if (error) return <div className="error-state"><p>Failed to load leads: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
+  if (allLeads.length === 0) return <div className="empty-state"><h3>No Leads Found</h3><p>Add your first lead using the form above to start tracking vendor opportunities.</p></div>;
 
   return (
     <>

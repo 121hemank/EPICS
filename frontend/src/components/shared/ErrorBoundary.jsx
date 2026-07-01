@@ -1,5 +1,6 @@
 import { Component } from 'react';
 
+// Prop types: { children, fallback?: ReactNode | ({ error, reset }) => ReactNode, onRetry?: () => void }
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -16,6 +17,7 @@ export default class ErrorBoundary extends Component {
 
   handleReset = () => {
     this.setState({ hasError: false, error: null });
+    this.props.onRetry?.();
   };
 
   render() {
@@ -31,9 +33,7 @@ export default class ErrorBoundary extends Component {
         <div className="error-boundary">
           <div className="error-boundary-content">
             <h2>Something went wrong</h2>
-            <p className="error-boundary-message">
-              {this.state.error?.message || 'An unexpected error occurred.'}
-            </p>
+            <p>Please try again. If the problem persists, contact support.</p>
             <button className="analyze-btn" onClick={this.handleReset}>
               Try Again
             </button>

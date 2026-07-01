@@ -60,8 +60,12 @@ export default function Topbar() {
                 <button
                   key={org.id}
                   className={`org-dropdown-item ${org.id === currentOrg?.id ? 'active' : ''}`}
-                  onClick={() => {
-                    switchOrg(org.id);
+                  onClick={async () => {
+                    try {
+                      await switchOrg(org.id);
+                    } catch {
+                      showToast('Failed to switch organization', 'error');
+                    }
                     setOrgDropdownOpen(false);
                   }}
                 >

@@ -1,16 +1,21 @@
+function sanitizeCsvCell(value) {
+  const str = String(value);
+  if (/^[=+\-@]/.test(str)) {
+    return `"${"'"}${str.replace(/"/g, '""')}"`;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
 export function downloadCSV(data, headers, filename) {
   if (!data || !data.length) {
-    alert("No data available to download.");
+    // Use `showToast('No data to export', 'warning')` instead of alert
     return;
   }
 
   const csvContent = [
     headers.join(","),
     ...data.map(row =>
-      headers.map(h => {
-        const val = row[h] ?? "";
-        return `"${String(val).replace(/"/g, '""')}"`;
-      }).join(",")
+      headers.map(h => sanitizeCsvCell(row[h] ?? "")).join(",")
     )
   ].join("\n");
 

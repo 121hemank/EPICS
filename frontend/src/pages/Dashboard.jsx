@@ -2,16 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
+import LoadingSkeleton from '../components/shared/LoadingSkeleton';
 import { loadVendorScores, loadVendors, loadLeads, loadCustomers, loadVendorScoreByName, loadVendorReviewsByName, loadActivityLogs } from '../lib/supabase';
 import { formatDateTime, getCustomerStatus } from '../utils/helpers';
-import {
-  Chart as ChartJS,
-  CategoryScale, LinearScale, PointElement, LineElement, BarElement,
-  ArcElement, Tooltip, Legend, Filler
-} from 'chart.js';
+import { ChartJS } from '../lib/chart-setup';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler);
 
 export default function Dashboard() {
   const { currentOrg } = useOrganization();
@@ -25,20 +20,33 @@ export default function Dashboard() {
   const [vendorDetail, setVendorDetail] = useState(null);
   const [vendorReviews, setVendorReviews] = useState([]);
   const [activityLog, setActivityLog] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const orgId = currentOrg?.id;
 
   const loadData = useCallback(async () => {
-    if (!orgId) return;
-    const [vs, av, ld, cust] = await Promise.all([
-      loadVendorScores(orgId), loadVendors(orgId), loadLeads(orgId), loadCustomers(orgId)
-    ]);
-    const approvedNames = av.map(v => v.vendor_name);
-    setVendorScores(vs.filter(v => approvedNames.includes(v.vendor_name)));
-    setApprovedVendors(av);
-    setLeads(ld);
-    setCustomers(cust);
-    loadActivityLogs(orgId, 15).then(setActivityLog).catch(() => {});
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const [vs, av, ld, cust] = await Promise.all([
+        loadVendorScores(orgId), loadVendors(orgId), loadLeads(orgId), loadCustomers(orgId)
+      ]);
+      const approvedNames = av.map(v => v.vendor_name);
+      setVendorScores(vs.filter(v => approvedNames.includes(v.vendor_name)));
+      setApprovedVendors(av);
+      setLeads(ld);
+      setCustomers(cust);
+      loadActivityLogs(orgId, 15).then(setActivityLog).catch(() => {});
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -97,6 +105,9 @@ export default function Dashboard() {
   } : null;
 
   const customersWithStatus = customers.map(c => ({ ...c, computedStatus: getCustomerStatus(c.latest_review_date) }));
+
+  if (loading) return <LoadingSkeleton type="card" count={6} />;
+  if (error) return <div className="error-state"><p>Failed to load dashboard data: {error}</p><button onClick={() => window.location.reload()}>Try Again</button></div>;
 
   return (
     <>

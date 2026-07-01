@@ -11,11 +11,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data?.user ?? null);
+    }).catch((err) => {
+      console.error('Failed to restore auth session:', err);
+      setUser(null);
+    }).finally(() => {
       setLoading(false);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      try {
+        setUser(session?.user ?? null);
+      } catch (err) {
+        console.error('Auth state change error:', err);
+      }
     });
 
     return () => listener?.subscription?.unsubscribe();
