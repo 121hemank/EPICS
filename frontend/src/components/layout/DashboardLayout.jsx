@@ -7,10 +7,7 @@ export default function DashboardLayout() {
   const [collapsed] = useState(false);
 
   return (
-    <div className="dashboard-glass-wrapper">
-      <div className="glass-orb glass-orb-1" />
-      <div className="glass-orb glass-orb-2" />
-      <div className="glass-orb glass-orb-3" />
+    <div className="dashboard-wrapper">
       <Topbar />
       <div className="container">
         <Sidebar collapsed={collapsed} />
