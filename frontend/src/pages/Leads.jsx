@@ -86,7 +86,7 @@ export default function Leads() {
       notes: fd.get('notes')
     };
     try {
-      await updateLead(editLead.id, payload);
+      await updateLead(editLead.id, payload, orgId);
       setEditModal(false);
       await loadData();
       showToast('Lead updated successfully.', 'success');
@@ -97,7 +97,7 @@ export default function Leads() {
 
   const handleStatusUpdate = async (id, status) => {
     try {
-      await updateLead(id, { status });
+      await updateLead(id, { status }, orgId);
       await loadData();
       showToast(`Lead marked as ${status}.`, 'success');
     } catch { showToast('Failed to update lead status.', 'error'); }
@@ -108,7 +108,7 @@ export default function Leads() {
     if (!lead) return;
     try {
       await upsertVendorFromLead(lead, orgId);
-      await updateLead(id, { status: 'Won', stage: 'Closing' });
+      await updateLead(id, { status: 'Won', stage: 'Closing' }, orgId);
       await loadData();
       showToast('Lead converted to active vendor.', 'success');
     } catch { showToast('Failed to convert lead.', 'error'); }
@@ -117,7 +117,7 @@ export default function Leads() {
   const handleArchive = async (id) => {
     if (!window.confirm('Archive this lead?')) return;
     try {
-      await updateLead(id, { status: 'On Hold' });
+      await updateLead(id, { status: 'On Hold' }, orgId);
       await loadData();
       showToast('Lead archived successfully.', 'success');
     } catch { showToast('Failed to archive lead.', 'error'); }
@@ -129,7 +129,7 @@ export default function Leads() {
     if (!window.confirm(`Delete this lead and its linked vendor?\n\nVendor: ${lead.vendor_name}`)) return;
     try {
       await deleteVendorByLead(lead);
-      await deleteLeadById(id);
+      await deleteLeadById(id, orgId, lead.vendor_name);
       await loadData();
       showToast('Lead and vendor deleted successfully.', 'success');
     } catch { showToast('Delete failed.', 'error'); }

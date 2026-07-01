@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useOrganization } from '../context/OrganizationContext';
 import MetricCard from '../components/shared/MetricCard';
-import { loadVendorScores, loadVendors, loadLeads, loadCustomers, loadVendorScoreByName, loadVendorReviewsByName } from '../lib/supabase';
+import { loadVendorScores, loadVendors, loadLeads, loadCustomers, loadVendorScoreByName, loadVendorReviewsByName, loadActivityLogs } from '../lib/supabase';
 import { formatDateTime, getCustomerStatus } from '../utils/helpers';
 import {
   Chart as ChartJS,
@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [selectedVendor, setSelectedVendor] = useState('');
   const [vendorDetail, setVendorDetail] = useState(null);
   const [vendorReviews, setVendorReviews] = useState([]);
+  const [activityLog, setActivityLog] = useState([]);
 
   const orgId = currentOrg?.id;
 
@@ -37,7 +38,8 @@ export default function Dashboard() {
     setApprovedVendors(av);
     setLeads(ld);
     setCustomers(cust);
-  }, []);
+    loadActivityLogs(orgId, 15).then(setActivityLog).catch(() => {});
+  }, [orgId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -180,6 +182,27 @@ export default function Dashboard() {
                     <td>{r.final_sentiment || '-'}</td>
                     <td>{r.final_score ? Number(r.final_score).toFixed(2) : '-'}</td>
                     <td>{formatDateTime(r.created_at)}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="vendor-table-card">
+        <div className="table-header"><h3>Recent Activity</h3></div>
+        <div className="table-wrapper">
+          <table className="vendor-score-table">
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+              {activityLog.length === 0 ? <tr><td colSpan="4">No recent activity.</td></tr> :
+                activityLog.map((a, i) => (
+                  <tr key={i}>
+                    <td>{formatDateTime(a.created_at)}</td>
+                    <td>{a.user?.email || '—'}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{a.action} {a.entity_type}</td>
+                    <td>{a.details}</td>
                   </tr>
                 ))
               }

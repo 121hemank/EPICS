@@ -50,7 +50,7 @@ export default function OrgSettings() {
 
   const handleRoleChange = async (memberId, newRole) => {
     try {
-      await updateMemberRole(memberId, newRole);
+      await updateMemberRole(memberId, newRole, currentOrg.id);
       await refreshMembers();
       showToast('Member role updated.', 'success');
     } catch {
@@ -61,7 +61,7 @@ export default function OrgSettings() {
   const handleRemove = async (memberId) => {
     if (!window.confirm('Remove this member from the organization?')) return;
     try {
-      await removeMember(memberId);
+      await removeMember(memberId, currentOrg.id);
       await refreshMembers();
       showToast('Member removed.', 'success');
     } catch {

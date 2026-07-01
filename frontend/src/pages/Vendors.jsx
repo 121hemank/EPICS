@@ -57,7 +57,7 @@ export default function Vendors() {
       onboarding_status: fd.get('onboarding_status')
     };
     try {
-      await updateVendor(editVendor.id, payload);
+      await updateVendor(editVendor.id, payload, orgId);
       setEditModal(false);
       await loadData();
       showToast('Vendor updated successfully.', 'success');
@@ -68,7 +68,7 @@ export default function Vendors() {
 
   const handleStatus = async (id, status) => {
     try {
-      await updateVendor(id, { onboarding_status: status });
+      await updateVendor(id, { onboarding_status: status }, orgId);
       await loadData();
       showToast(`Vendor marked as ${status}.`, 'success');
     } catch { showToast('Failed to update vendor status.', 'error'); }
@@ -81,7 +81,7 @@ export default function Vendors() {
       await deleteVendorScoresByName(vendor.vendor_name);
       await deleteVendorReviewsByName(vendor.vendor_name);
       await unlinkCustomerVendor(vendor.vendor_name);
-      await deleteVendor(id);
+      await deleteVendor(id, orgId, vendor.vendor_name);
       await loadData();
       showToast('Vendor and related analytics deleted successfully.', 'success');
     } catch { showToast('Failed to delete vendor.', 'error'); }

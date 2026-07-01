@@ -1,5 +1,39 @@
 import { supabase } from './supabase-client';
 
+// ---- Activity Log ----
+async function getCurrentUserId() {
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id;
+}
+
+export async function logActivity(orgId, action, entityType, entityName, details) {
+  const userId = await getCurrentUserId();
+  if (!userId || !orgId) return;
+  try {
+    await supabase.from("activity_logs").insert([{
+      organization_id: orgId,
+      user_id: userId,
+      action,
+      entity_type: entityType,
+      entity_name: entityName,
+      details: details ? String(details).slice(0, 500) : null
+    }]);
+  } catch (err) {
+    console.error("Failed to log activity:", err);
+  }
+}
+
+export async function loadActivityLogs(orgId, limit = 20) {
+  const { data, error } = await supabase
+    .from("activity_logs")
+    .select("*, user:user_id(email)")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) { console.error(error); return []; }
+  return data || [];
+}
+
 // ---- Auth ----
 export async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({
@@ -50,6 +84,8 @@ export async function createOrganization(name) {
     }]);
   if (memberError) throw memberError;
 
+  logActivity(id, 'create', 'organization', name, `Organization created: ${name}`);
+
   return { id, name, created_at: new Date().toISOString() };
 }
 
@@ -84,22 +120,25 @@ export async function inviteMember(orgId, email, role) {
       invited_by: currentUser.id
     }]);
   if (error) throw error;
+  logActivity(orgId, 'invite', 'member', email, `Invited ${email} as ${role}`);
 }
 
-export async function updateMemberRole(memberId, role) {
+export async function updateMemberRole(memberId, role, orgId) {
   const { error } = await supabase
     .from('organization_members')
     .update({ role })
     .eq('id', memberId);
   if (error) throw error;
+  logActivity(orgId, 'update', 'member', memberId, `Member role changed to ${role}`);
 }
 
-export async function removeMember(memberId) {
+export async function removeMember(memberId, orgId) {
   const { error } = await supabase
     .from('organization_members')
     .delete()
     .eq('id', memberId);
   if (error) throw error;
+  logActivity(orgId, 'delete', 'member', memberId, 'Member removed from organization');
 }
 
 export async function loadPendingInvites(userId) {
@@ -194,6 +233,7 @@ export async function upsertVendorScore(vendorName, rating, finalSentiment, fina
       .eq("organization_id", orgId);
     if (error) throw error;
   }
+  logActivity(orgId, 'update', 'score', vendorName, `Vendor score updated for ${vendorName} (rating: ${rating})`);
 }
 
 // ---- Vendors ----
@@ -207,20 +247,25 @@ export async function loadVendors(orgId) {
   return data || [];
 }
 
-export async function updateVendor(vendorId, payload) {
+export async function updateVendor(vendorId, payload, orgId) {
   const { error } = await supabase.from("vendors").update(payload).eq("id", vendorId);
   if (error) throw error;
+  if (payload.onboarding_status) {
+    logActivity(orgId, 'update', 'vendor', payload.vendor_name || vendorId, `Vendor status changed to ${payload.onboarding_status}`);
+  }
 }
 
-export async function deleteVendor(vendorId) {
+export async function deleteVendor(vendorId, orgId, vendorName) {
   const { error } = await supabase.from("vendors").delete().eq("id", vendorId);
   if (error) throw error;
+  logActivity(orgId, 'delete', 'vendor', vendorName, `Vendor deleted: ${vendorName}`);
 }
 
 // ---- Vendor Reviews ----
 export async function saveVendorReview(payload) {
   const { error } = await supabase.from("vendor_reviews").insert([payload]);
   if (error) throw error;
+  logActivity(payload.organization_id, 'create', 'review', payload.customer_name, `Review submitted for ${payload.vendor_name} (rating: ${payload.rating})`);
 }
 
 export async function loadReviewHistory(orgId) {
@@ -305,12 +350,14 @@ export async function upsertCustomer(customerName, vendorName, rating, reviewTex
       .eq("organization_id", orgId);
     if (error) throw error;
   }
+  logActivity(orgId, existing ? 'update' : 'create', 'customer', customerName, `Customer ${existing ? 'updated' : 'created'}: ${customerName} (vendor: ${vendorName})`);
 }
 
 // ---- Leads ----
 export async function saveLead(payload) {
   const { error } = await supabase.from("leads").insert([payload]);
   if (error) throw error;
+  logActivity(payload.organization_id, 'create', 'lead', payload.vendor_name, `Lead created: ${payload.vendor_name}`);
 }
 
 export async function loadLeads(orgId) {
@@ -323,14 +370,18 @@ export async function loadLeads(orgId) {
   return data || [];
 }
 
-export async function updateLead(leadId, payload) {
+export async function updateLead(leadId, payload, orgId) {
   const { error } = await supabase.from("leads").update(payload).eq("id", leadId);
   if (error) throw error;
+  if (payload.status === 'Won' || payload.status === 'Lost') {
+    logActivity(orgId, 'update', 'lead', payload.vendor_name || leadId, `Lead marked as ${payload.status}`);
+  }
 }
 
-export async function deleteLeadById(leadId) {
+export async function deleteLeadById(leadId, orgId, vendorName) {
   const { error } = await supabase.from("leads").delete().eq("id", leadId);
   if (error) throw error;
+  logActivity(orgId, 'delete', 'lead', vendorName, `Lead deleted: ${vendorName}`);
 }
 
 export async function upsertVendorFromLead(lead, orgId) {
@@ -353,6 +404,7 @@ export async function upsertVendorFromLead(lead, orgId) {
       source_lead_id: lead.id
     }]);
     if (error) throw error;
+    logActivity(orgId, 'convert', 'lead', lead.vendor_name, `Lead converted to vendor: ${lead.vendor_name}`);
   } else {
     const { error } = await supabase.from("vendors").update({
       contact_person: lead.contact_person,
@@ -362,6 +414,7 @@ export async function upsertVendorFromLead(lead, orgId) {
       source_lead_id: lead.id
     }).eq("vendor_name", lead.vendor_name).eq("organization_id", orgId);
     if (error) throw error;
+    logActivity(orgId, 'convert', 'lead', lead.vendor_name, `Lead converted to vendor (existing): ${lead.vendor_name}`);
   }
 }
 
