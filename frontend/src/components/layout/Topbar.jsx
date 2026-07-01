@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useOrganization } from '../../context/OrganizationContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -13,7 +12,6 @@ export default function Topbar() {
   const { settings } = useSettings();
   const { currentOrg, organizations, role, switchOrg } = useOrganization();
   const displayName = settings.displayName || user?.email?.split('@')[0] || 'User';
-  const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -34,7 +32,6 @@ export default function Topbar() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
     } catch {
       showToast('Logout failed', 'error');
     }
