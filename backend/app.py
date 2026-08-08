@@ -13,7 +13,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://epics-pied.vercel.app"
+        "https://epics-pied.vercel.app",
+        "https://vencrm.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -31,6 +32,9 @@ print("Preferred device:", GPU_DEVICE, flush=True)
 
 class PredictionRequest(BaseModel):
     text: str
+
+class BatchPredictionRequest(BaseModel):
+    texts: list[str]
 
 label_maps = {
     "bertweet": ["Negative", "Neutral", "Positive"],
@@ -188,3 +192,39 @@ def compare_models(request: PredictionRequest):
             }
 
     return results
+
+
+@app.post("/compare_batch")
+def compare_models_batch(request: BatchPredictionRequest):
+    results = []
+
+    for text in request.texts:
+        item = {}
+
+        for model_name in ["bertweet", "roberta"]:
+            try:
+                tokenizer, model, model_device = load_model(model_name)
+                pred_idx, confidence = predict_text(
+                    model=model,
+                    tokenizer=tokenizer,
+                    text=text,
+                    model_name=model_name,
+                    model_device=model_device
+                )
+                label = label_maps[model_name][pred_idx]
+
+                item[model_name] = {
+                    "prediction": label,
+                    "confidence": round(confidence, 4),
+                    "device": model_device.type
+                }
+
+            except Exception as e:
+                unload_all_models()
+                item[model_name] = {
+                    "error": str(e)
+                }
+
+        results.append(item)
+
+    return {"results": results}

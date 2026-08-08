@@ -9,7 +9,7 @@ export default function Topbar() {
   const [clock, setClock] = useState(new Date().toLocaleString());
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const { user } = useAuth();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { currentOrg, organizations, role, switchOrg } = useOrganization();
   const displayName = settings.displayName || user?.email?.split('@')[0] || 'User';
   const dropdownRef = useRef(null);
@@ -39,6 +39,11 @@ export default function Topbar() {
 
   const roleBadge = role ? role.charAt(0).toUpperCase() + role.slice(1) : '';
   const firstLetter = displayName.charAt(0).toUpperCase();
+  const isDark = settings.theme === 'dark';
+
+  const toggleTheme = () => {
+    updateSettings({ theme: isDark ? 'light' : 'dark' });
+  };
 
   return (
     <header className="topbar">
@@ -82,6 +87,15 @@ export default function Topbar() {
           <span className="topbar-user-avatar" aria-hidden="true">{firstLetter}</span>
           {displayName}
         </span>
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          <span aria-hidden="true">{isDark ? '☀' : '☾'}</span>
+        </button>
         <button className="topbar-logout-btn" onClick={handleLogout} aria-label="Logout">Logout</button>
       </div>
     </header>
