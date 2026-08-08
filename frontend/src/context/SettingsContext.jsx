@@ -5,7 +5,15 @@ const DEFAULT_SETTINGS = {
   theme: "light",
   sentimentWeight: 50,
   ratingWeight: 50,
-  displayName: ""
+  displayName: "",
+  enableRules: true,
+  sentimentThreshold: 30,
+  ratingThreshold: 3,
+  scoreThreshold: 3,
+  openaiApiKey: "",
+  sendgridApiKey: "",
+  whatsappWebhook: "",
+  supabaseUrl: ""
 };
 
 function getStored() {

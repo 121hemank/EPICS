@@ -4,6 +4,8 @@ import { useOrganization } from '../../context/OrganizationContext';
 import { useSettings } from '../../context/SettingsContext';
 import { logout } from '../../lib/supabase';
 import { showToast } from '../../utils/toast';
+import GlobalSearch from './GlobalSearch';
+import NotificationCenter from './NotificationCenter';
 
 export default function Topbar() {
   const [clock, setClock] = useState(new Date().toLocaleString());
@@ -82,6 +84,8 @@ export default function Topbar() {
           )}
         </div>
         {roleBadge && <span className="role-badge">{roleBadge}</span>}
+        <GlobalSearch />
+        <NotificationCenter />
         <span id="liveClock" title={clock}>{clock}</span>
         <span className="topbar-user" title={displayName}>
           <span className="topbar-user-avatar" aria-hidden="true">{firstLetter}</span>

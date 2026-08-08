@@ -124,3 +124,53 @@ export function suggestAction(sentiment, score) {
   }
   return "Review feedback details and outline a concrete improvement plan.";
 }
+
+// ---- RBAC Permissions ----
+export const ROLE_LABELS = {
+  admin: "Admin",
+  manager: "Manager",
+  analyst: "Analyst",
+  viewer: "Vendor Viewer",
+  employee: "Employee"
+};
+
+export const ROLE_CLASSES = {
+  admin: "status-won",
+  manager: "status-contacted",
+  analyst: "status-follow-up",
+  viewer: "status-open",
+  employee: "status-on-hold"
+};
+
+const PERMISSION_DEFS = [
+  { key: "settings.app", label: "App settings (backend URL, display name)" },
+  { key: "settings.weights", label: "Scoring weights" },
+  { key: "settings.rules", label: "Scoring preset rules & thresholds" },
+  { key: "settings.integrations", label: "API keys & integrations" },
+  { key: "members.manage", label: "Invite / remove team members" },
+  { key: "leads.manage", label: "Manage leads" },
+  { key: "vendors.manage", label: "Manage vendors" },
+  { key: "reviews.analyze", label: "Run AI review analysis" },
+  { key: "audit.view", label: "View audit trail" },
+  { key: "data.export", label: "Export data (CSV)" }
+];
+
+const PERMISSIONS = {
+  admin: PERMISSION_DEFS.map(p => p.key),
+  manager: ["settings.weights", "settings.rules", "leads.manage", "vendors.manage", "reviews.analyze", "audit.view", "data.export"],
+  analyst: ["reviews.analyze", "audit.view", "data.export"],
+  employee: ["reviews.analyze", "audit.view", "data.export"],
+  viewer: ["audit.view", "data.export"]
+};
+
+export function can(role, permission) {
+  const perms = PERMISSIONS[role] || PERMISSIONS.viewer;
+  return perms.includes(permission);
+}
+
+export function getPermissionDefs() {
+  return PERMISSION_DEFS.map(p => ({
+    ...p,
+    roles: Object.keys(PERMISSIONS).filter(r => PERMISSIONS[r].includes(p.key))
+  }));
+}

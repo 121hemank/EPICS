@@ -18,6 +18,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     { to: '/pipeline', label: 'Pipeline', show: true },
     { to: '/analytics', label: 'Analytics', show: true },
     { to: '/performance', label: 'Performance', show: true },
+    { to: '/onboard', label: 'Vendor Onboarding', show: true },
     { to: '/org-settings', label: 'Team', show: isAdmin },
     { to: '/settings', label: 'Settings', show: true },
   ];

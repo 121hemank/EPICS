@@ -73,7 +73,9 @@ export default function OrgSettings() {
     switch (r) {
       case 'admin': return 'status-won';
       case 'manager': return 'status-contacted';
-      case 'employee': return 'status-open';
+      case 'analyst': return 'status-follow-up';
+      case 'viewer': return 'status-open';
+      case 'employee': return 'status-on-hold';
       default: return '';
     }
   };
@@ -134,6 +136,8 @@ export default function OrgSettings() {
                 <select value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
                   <option value="admin">Admin</option>
                   <option value="manager">Manager</option>
+                  <option value="analyst">Analyst</option>
+                  <option value="viewer">Vendor Viewer</option>
                   <option value="employee">Employee</option>
                 </select>
               </div>
@@ -171,6 +175,8 @@ export default function OrgSettings() {
                       >
                         <option value="admin">Admin</option>
                         <option value="manager">Manager</option>
+                        <option value="analyst">Analyst</option>
+                        <option value="viewer">Vendor Viewer</option>
                         <option value="employee">Employee</option>
                       </select>
                     ) : (

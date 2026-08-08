@@ -20,6 +20,7 @@ import Vendors from './pages/Vendors';
 import Pipeline from './pages/Pipeline';
 import Performance from './pages/Performance';
 import Settings from './pages/Settings';
+import VendorOnboarding from './pages/VendorOnboarding';
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
                     <Route path="/vendors" element={<ErrorBoundary><Vendors /></ErrorBoundary>} />
                     <Route path="/pipeline" element={<ErrorBoundary><Pipeline /></ErrorBoundary>} />
                     <Route path="/performance" element={<ErrorBoundary><Performance /></ErrorBoundary>} />
+                    <Route path="/onboard" element={<ErrorBoundary><VendorOnboarding /></ErrorBoundary>} />
                     <Route path="/org-settings" element={<ErrorBoundary><OrgSettings /></ErrorBoundary>} />
                     <Route path="/settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
                   </Route>

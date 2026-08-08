@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import {
   loadVendors, saveVendorReview, upsertVendorScore, upsertCustomer,
-  loadVendorScoreByName, loadAllVendorReviews
+  loadVendorScoreByName, loadAllVendorReviews, logActivity
 } from '../lib/supabase';
 import { analyzeReviewWithBackend, analyzeReviewsBatch } from '../lib/api';
 import {
@@ -159,6 +159,7 @@ export default function Analytics() {
       await loadData();
     } catch (err) {
       setStatus(`Error: ${err.message}`);
+      logActivity(orgId, 'analyze', 'review', form.vendorName, `AI analysis failed: ${err.message}`);
       showToast('Analysis failed. Please try again.', 'error');
     } finally {
       setLoading(false);
@@ -171,6 +172,20 @@ export default function Analytics() {
       ['customer_name', 'vendor_name', 'rating', 'review'],
       'review_batch_template.csv'
     );
+  };
+
+  const handleExport = () => {
+    if (!filteredReviews.length) { showToast('No reviews to export.', 'info'); return; }
+    const rows = filteredReviews.map(r => ({
+      vendor_name: r.vendor_name,
+      customer_name: r.customer_name,
+      rating: r.rating,
+      review: r.customer_review,
+      sentiment: r.final_sentiment,
+      score: r.final_score
+    }));
+    downloadCSV(rows, ['vendor_name', 'customer_name', 'rating', 'review', 'sentiment', 'score'], 'review_export.csv');
+    showToast('Review history exported.', 'success');
   };
 
   const handleFile = (e) => {
@@ -240,6 +255,7 @@ export default function Analytics() {
           succeeded++;
         } catch (err) {
           failures.push(`Row ${row.index} (${row.customer}): ${err.message}`);
+          logActivity(orgId, 'analyze', 'review', row.vendor, `AI analysis failed: ${err.message}`);
         }
         setBatchProgress(`${i + 1}/${validRows.length}`);
       }
@@ -472,7 +488,10 @@ export default function Analytics() {
       </div>
 
       <div className="vendor-table-card">
-        <div className="table-header"><h3>Review History</h3></div>
+        <div className="table-header">
+          <h3>Review History</h3>
+          <button type="button" className="link-btn" onClick={handleExport}>Export CSV</button>
+        </div>
         <div className="filter-bar">
           <select value={filterVendor} onChange={e => setFilterVendor(e.target.value)} aria-label="Filter by vendor">
             <option value="">All Vendors</option>
