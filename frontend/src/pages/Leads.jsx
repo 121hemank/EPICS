@@ -113,13 +113,22 @@ export default function Leads() {
       await upsertVendorFromLead(lead, orgId);
       await updateLead(id, { status: 'Won', stage: 'Closing' }, orgId);
       if (lead.contact_email && settings.emailOnVendorApproved) {
-        notifyVendorApproved({
-          email: lead.contact_email,
-          vendor_name: lead.vendor_name,
-          org_name: currentOrg?.name,
-          sendgrid_api_key: settings.sendgridApiKey || undefined,
-          from_email: settings.sendgridFromEmail || undefined
-        }, settings.backendUrl).catch(() => {});
+        try {
+          const res = await notifyVendorApproved({
+            email: lead.contact_email,
+            vendor_name: lead.vendor_name,
+            org_name: currentOrg?.name,
+            sendgrid_api_key: settings.sendgridApiKey || undefined,
+            from_email: settings.sendgridFromEmail || undefined
+          }, settings.backendUrl);
+          if (res.sent) {
+            showToast(`Approval email sent to ${lead.contact_email}.`, 'success');
+          } else {
+            showToast(`Vendor approved, but email not sent: ${res.reason || 'unknown error'}`, 'info');
+          }
+        } catch (err) {
+          showToast(`Vendor approved, but email failed: ${err.message}`, 'info');
+        }
       }
       await loadData();
       showToast('Lead converted to active vendor.', 'success');
