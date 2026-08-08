@@ -22,6 +22,7 @@ import Performance from './pages/Performance';
 import Settings from './pages/Settings';
 import VendorOnboarding from './pages/VendorOnboarding';
 import ApplyVendor from './pages/ApplyVendor';
+import AcceptInvite from './pages/AcceptInvite';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/apply" element={<ErrorBoundary><ApplyVendor /></ErrorBoundary>} />
             <Route element={<ProtectedRoute />}>
               <Route path="/org-setup" element={<ErrorBoundary><OrgSetup /></ErrorBoundary>} />
+              <Route path="/accept-invite" element={<ErrorBoundary><AcceptInvite /></ErrorBoundary>} />
               <Route element={<OrganizationProvider />}>
                 <Route element={<OrgGuard />}>
                   <Route element={<DashboardLayout />}>

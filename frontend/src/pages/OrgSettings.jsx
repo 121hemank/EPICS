@@ -3,6 +3,7 @@ import { useOrganization } from '../context/OrganizationContext';
 import { useAuth } from '../context/AuthContext';
 import { updateOrganization, inviteMember, updateMemberRole, removeMember, recoverOrgOwner } from '../lib/supabase';
 import { showToast } from '../utils/toast';
+import Modal from '../components/shared/Modal';
 
 export default function OrgSettings() {
   const { currentOrg, members, role, isAdmin, refreshMembers, reloadOrgs } = useOrganization();
@@ -12,6 +13,9 @@ export default function OrgSettings() {
   const [inviteRole, setInviteRole] = useState('employee');
   const [saving, setSaving] = useState(false);
   const [recovering, setRecovering] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
+  const [invitedEmail, setInvitedEmail] = useState('');
+  const [copied, setCopied] = useState(false);
 
   if (!currentOrg) {
     return (
@@ -40,12 +44,25 @@ export default function OrgSettings() {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
     try {
-      await inviteMember(currentOrg.id, inviteEmail.trim(), inviteRole);
+      const link = await inviteMember(currentOrg.id, inviteEmail.trim(), inviteRole);
       await refreshMembers();
+      setInvitedEmail(inviteEmail.trim());
       setInviteEmail('');
-      showToast(`Invitation sent to ${inviteEmail}`, 'success');
+      setInviteLink(link);
+      setCopied(false);
+      showToast('Invitation created.', 'success');
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
+    }
+  };
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      showToast('Could not copy automatically. Copy it manually.', 'info');
     }
   };
 
@@ -246,6 +263,27 @@ export default function OrgSettings() {
           </table>
         </div>
       </div>
+
+      <Modal open={!!inviteLink} onClose={() => setInviteLink('')} title="Invitation Created">
+        <p className="danger-modal-text">
+          Share this link with <strong>{invitedEmail}</strong>. They can accept it
+          after signing in or creating an account.
+        </p>
+        <div className="share-row" style={{ marginBottom: 16 }}>
+          <input
+            readOnly
+            value={inviteLink}
+            onFocus={e => e.target.select()}
+            aria-label="Invitation link"
+          />
+          <button type="button" className="analyze-btn" onClick={copyInviteLink}>
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div className="modal-actions">
+          <button type="button" className="action-btn" onClick={() => setInviteLink('')}>Done</button>
+        </div>
+      </Modal>
     </>
   );
 }

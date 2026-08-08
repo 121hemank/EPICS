@@ -98,29 +98,47 @@ export async function updateOrganization(orgId, payload) {
 }
 
 export async function inviteMember(orgId, email, role) {
-  const { data: invitedUser, error: userError } = await supabase
-    .from('auth.users')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle();
+  const currentUser = (await supabase.auth.getUser()).data.user;
+  const token = typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 
-  if (userError || !invitedUser) {
-    throw new Error('User not found. They must sign up first.');
+  const { data: existingUserId, error: lookupError } = await supabase
+    .rpc('get_user_id_by_email', { p_email: email.trim() });
+  if (lookupError) throw lookupError;
+
+  if (existingUserId) {
+    const { error } = await supabase
+      .from('organization_members')
+      .insert([{
+        organization_id: orgId,
+        user_id: existingUserId,
+        role,
+        status: 'pending',
+        invited_by: currentUser?.id
+      }]);
+    if (error) throw error;
   }
 
-  const currentUser = (await supabase.auth.getUser()).data.user;
-
-  const { error } = await supabase
-    .from('organization_members')
+  const { error: invError } = await supabase
+    .from('invitations')
     .insert([{
       organization_id: orgId,
-      user_id: invitedUser.id,
+      email: email.trim(),
       role,
-      status: 'pending',
-      invited_by: currentUser.id
+      token,
+      invited_by: currentUser?.id
     }]);
-  if (error) throw error;
+  if (invError) throw invError;
+
   logActivity(orgId, 'invite', 'member', email, `Invited ${email} as ${role}`);
+  return `${window.location.origin}/accept-invite?token=${token}`;
+}
+
+export async function acceptInvitation(token) {
+  const { data, error } = await supabase.rpc('accept_invitation', { p_token: token });
+  if (error) throw error;
+  return data;
 }
 
 export async function updateMemberRole(memberId, role, orgId) {
