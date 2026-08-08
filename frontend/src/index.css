@@ -1152,6 +1152,56 @@ body.dark .action-box { border-left-color: var(--accent); }
   .notification-drawer { position: fixed; top: 60px; right: 10px; width: min(320px, 92vw); }
 }
 
+/* ===== PUBLIC VENDOR APPLICATION ===== */
+.apply-page {
+  min-height: 100vh;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 16px;
+  background: var(--bg-alt);
+  position: relative;
+  overflow: hidden;
+}
+.apply-page::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0.5;
+  background:
+    radial-gradient(ellipse at 15% 30%, rgba(196,117,93,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 70%, rgba(122,139,110,0.10) 0%, transparent 50%);
+  pointer-events: none;
+}
+.apply-card {
+  width: 100%; max-width: 520px;
+  background: var(--card);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 12px 12px 28px var(--shadow-dark), -12px -12px 28px var(--shadow-light);
+  position: relative;
+}
+.apply-card h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: var(--text); }
+.apply-home-link { display: inline-block; margin-top: 16px; color: var(--accent); font-weight: 600; }
+.apply-card .vendor-review-form { margin-top: 16px; }
+.apply-card .vendor-review-form input,
+.apply-card .vendor-review-form textarea,
+.apply-card .vendor-review-form select {
+  width: 100%; border: none; border-radius: 14px;
+  padding: 12px 14px; font-size: 14px; outline: none;
+  background: var(--bg); color: var(--text);
+  box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light);
+}
+.apply-card .vendor-review-form input::placeholder,
+.apply-card .vendor-review-form textarea::placeholder { color: var(--text-light); }
+
+/* ===== ONBOARDING SHARE LINK ===== */
+.onboarding-share-card { margin-bottom: 24px; }
+.share-row { display: flex; gap: 10px; }
+.share-row input {
+  flex: 1; border: none; border-radius: 12px; padding: 10px 12px; font-size: 13px;
+  background: var(--bg); color: var(--text);
+  box-shadow: inset 3px 3px 8px var(--shadow-dark), inset -3px -3px 8px var(--shadow-light);
+}
+.share-row .analyze-btn { white-space: nowrap; }
+
 @media (max-width: 480px) {
   .vendor-dashboard-grid { grid-template-columns: 1fr; }
 

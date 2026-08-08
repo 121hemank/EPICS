@@ -132,6 +132,12 @@ export async function updateMemberRole(memberId, role, orgId) {
   logActivity(orgId, 'update', 'member', memberId, `Member role changed to ${role}`);
 }
 
+export async function recoverOrgOwner(orgId) {
+  const { data, error } = await supabase.rpc('recover_org_owner', { p_org_id: orgId });
+  if (error) throw error;
+  return data;
+}
+
 export async function removeMember(memberId, orgId) {
   const { error } = await supabase
     .from('organization_members')

@@ -4,9 +4,23 @@ import { saveLead } from '../lib/supabase';
 import { showToast } from '../utils/toast';
 
 export default function VendorOnboarding() {
-  const { currentOrg } = useOrganization();
+  const { currentOrg, isAdmin } = useOrganization();
   const orgId = currentOrg?.id;
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const publicLink = orgId ? `${window.location.origin}/apply?org=${orgId}` : '';
+
+  const copyLink = async () => {
+    if (!publicLink) return;
+    try {
+      await navigator.clipboard.writeText(publicLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      showToast('Could not copy the link automatically. Copy it manually below.', 'info');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +50,8 @@ export default function VendorOnboarding() {
         priority: 'Medium',
         status: 'Open',
         notes: notes || null,
-        organization_id: orgId
+        organization_id: orgId,
+        source: 'internal_onboarding'
       });
       setSubmitted(true);
       e.target.reset();
@@ -54,6 +69,23 @@ export default function VendorOnboarding() {
           <p>Apply to become a vendor or invite a vendor to self-serve registration.</p>
         </div>
       </div>
+      {isAdmin && (
+        <div className="vendor-table-card onboarding-share-card">
+          <div className="table-header"><h3>Public Onboarding Link</h3></div>
+          <p className="batch-hint">Share this link with vendors. They can apply without logging in.</p>
+          <div className="share-row">
+            <input
+              readOnly
+              value={publicLink}
+              onFocus={e => e.target.select()}
+              aria-label="Public onboarding link"
+            />
+            <button type="button" className="analyze-btn" onClick={copyLink}>
+              {copied ? 'Copied!' : 'Copy Link'}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="onboarding-layout">
         <div className="analytics-form-card onboarding-form-card">
           <h2>Vendor Application</h2>

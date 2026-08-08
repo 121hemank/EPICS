@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
 import { useAuth } from '../context/AuthContext';
-import { updateOrganization, inviteMember, updateMemberRole, removeMember } from '../lib/supabase';
+import { updateOrganization, inviteMember, updateMemberRole, removeMember, recoverOrgOwner } from '../lib/supabase';
 import { showToast } from '../utils/toast';
 
 export default function OrgSettings() {
-  const { currentOrg, members, role, isAdmin, refreshMembers } = useOrganization();
+  const { currentOrg, members, role, isAdmin, refreshMembers, reloadOrgs } = useOrganization();
   const { user } = useAuth();
   const [orgName, setOrgName] = useState(currentOrg?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('employee');
   const [saving, setSaving] = useState(false);
+  const [recovering, setRecovering] = useState(false);
 
   if (!currentOrg) {
     return (
@@ -49,23 +50,49 @@ export default function OrgSettings() {
   };
 
   const handleRoleChange = async (memberId, newRole) => {
+    const target = members.find(m => m.id === memberId);
+    const activeAdmins = members.filter(m => m.role === 'admin' && m.status === 'active');
+    if (target?.role === 'admin' && newRole !== 'admin' && activeAdmins.length <= 1) {
+      showToast('You cannot demote the last active admin.', 'error');
+      return;
+    }
     try {
       await updateMemberRole(memberId, newRole, currentOrg.id);
       await refreshMembers();
       showToast('Member role updated.', 'success');
-    } catch {
-      showToast('Failed to update role.', 'error');
+    } catch (err) {
+      showToast(`Failed to update role: ${err.message}`, 'error');
     }
   };
 
   const handleRemove = async (memberId) => {
+    const target = members.find(m => m.id === memberId);
+    const activeAdmins = members.filter(m => m.role === 'admin' && m.status === 'active');
+    if (target?.role === 'admin' && activeAdmins.length <= 1) {
+      showToast('You cannot remove the last active admin.', 'error');
+      return;
+    }
     if (!window.confirm('Remove this member from the organization?')) return;
     try {
       await removeMember(memberId, currentOrg.id);
       await refreshMembers();
       showToast('Member removed.', 'success');
-    } catch {
-      showToast('Failed to remove member.', 'error');
+    } catch (err) {
+      showToast(`Failed to remove member: ${err.message}`, 'error');
+    }
+  };
+
+  const handleRecoverAdmin = async () => {
+    if (!window.confirm('Promote yourself to admin? This only works if the organization currently has no admin.')) return;
+    setRecovering(true);
+    try {
+      await recoverOrgOwner(currentOrg.id);
+      await reloadOrgs();
+      showToast('You are now an admin.', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setRecovering(false);
     }
   };
 
@@ -116,6 +143,19 @@ export default function OrgSettings() {
             )}
           </form>
         </div>
+
+        {!isAdmin && (
+          <div className="analytics-form-card">
+            <h2>Admin Access Recovery</h2>
+            <p className="batch-hint">
+              You are currently a <strong>{role || 'member'}</strong>. If your organization has no
+              admin, you can reclaim admin access.
+            </p>
+            <button type="button" className="analyze-btn" onClick={handleRecoverAdmin} disabled={recovering}>
+              {recovering ? 'Checking...' : 'Recover Admin Access'}
+            </button>
+          </div>
+        )}
 
         {isAdmin && (
           <div className="analytics-form-card">

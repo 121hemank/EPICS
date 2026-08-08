@@ -21,6 +21,7 @@ import Pipeline from './pages/Pipeline';
 import Performance from './pages/Performance';
 import Settings from './pages/Settings';
 import VendorOnboarding from './pages/VendorOnboarding';
+import ApplyVendor from './pages/ApplyVendor';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
               <Route path="/login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
               <Route path="/signup" element={<ErrorBoundary><Signup /></ErrorBoundary>} />
             </Route>
+            <Route path="/apply" element={<ErrorBoundary><ApplyVendor /></ErrorBoundary>} />
             <Route element={<ProtectedRoute />}>
               <Route path="/org-setup" element={<ErrorBoundary><OrgSetup /></ErrorBoundary>} />
               <Route element={<OrganizationProvider />}>
