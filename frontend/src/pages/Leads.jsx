@@ -117,7 +117,8 @@ export default function Leads() {
           email: lead.contact_email,
           vendor_name: lead.vendor_name,
           org_name: currentOrg?.name,
-          sendgrid_api_key: settings.sendgridApiKey || undefined
+          sendgrid_api_key: settings.sendgridApiKey || undefined,
+          from_email: settings.sendgridFromEmail || undefined
         }, settings.backendUrl).catch(() => {});
       }
       await loadData();

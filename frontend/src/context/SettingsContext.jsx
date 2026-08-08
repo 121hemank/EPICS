@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = {
   scoreThreshold: 3,
   openaiApiKey: "",
   sendgridApiKey: "",
+  sendgridFromEmail: "",
   whatsappWebhook: "",
   supabaseUrl: "",
   emailOnVendorApproved: true,

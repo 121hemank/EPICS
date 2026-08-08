@@ -30,6 +30,7 @@ export default function Settings() {
 
   const [openaiApiKey, setOpenaiApiKey] = useState(settings.openaiApiKey || '');
   const [sendgridApiKey, setSendgridApiKey] = useState(settings.sendgridApiKey || '');
+  const [sendgridFromEmail, setSendgridFromEmail] = useState(settings.sendgridFromEmail || '');
   const [whatsappWebhook, setWhatsappWebhook] = useState(settings.whatsappWebhook || '');
   const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl || '');
 
@@ -116,7 +117,7 @@ export default function Settings() {
 
   const handleIntegrationsSubmit = (e) => {
     e.preventDefault();
-    updateSettings({ openaiApiKey, sendgridApiKey, whatsappWebhook, supabaseUrl });
+    updateSettings({ openaiApiKey, sendgridApiKey, sendgridFromEmail, whatsappWebhook, supabaseUrl });
     audit('integrations', `${actorName} updated integration keys`);
     showToast('Integrations saved.', 'success');
   };
@@ -275,6 +276,10 @@ export default function Settings() {
             <div className="form-group">
               <label>SendGrid API Key</label>
               <input type="password" value={sendgridApiKey} onChange={e => setSendgridApiKey(e.target.value)} placeholder="SG.xxxx" autoComplete="off" disabled={!canDo('settings.integrations')} />
+            </div>
+            <div className="form-group">
+              <label>SendGrid From Email</label>
+              <input type="email" value={sendgridFromEmail} onChange={e => setSendgridFromEmail(e.target.value)} placeholder="your-verified-sender@example.com" autoComplete="off" disabled={!canDo('settings.integrations')} />
             </div>
             <div className="form-group">
               <label>WhatsApp Webhook URL</label>
