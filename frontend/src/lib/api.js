@@ -36,3 +36,17 @@ export async function analyzeReviewsBatch(reviewTexts) {
   const data = await response.json();
   return data.results || [];
 }
+
+export async function notifyVendorApproved(payload, baseUrl = BACKEND_URL) {
+  const response = await fetch(`${baseUrl}/api/notify/vendor-approved`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    throw new Error("Notification endpoint failed");
+  }
+  return await response.json();
+}

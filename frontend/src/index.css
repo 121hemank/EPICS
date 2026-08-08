@@ -1202,6 +1202,25 @@ body.dark .action-box { border-left-color: var(--accent); }
 }
 .share-row .analyze-btn { white-space: nowrap; }
 
+/* ===== SETTINGS: CONNECTION TESTER, WEIGHTS, PREFERENCES, DANGER ZONE ===== */
+.conn-input-row { display: flex; gap: 10px; }
+.conn-input-row input { flex: 1; }
+.conn-btn { white-space: nowrap; padding: 8px 14px; }
+.conn-status { margin-top: 8px; font-size: 13px; font-weight: 600; }
+.conn-ok { color: var(--success); }
+.conn-fail { color: var(--danger); }
+.weight-status { margin: 8px 0 12px; }
+.weight-ok { color: var(--success); }
+.weight-warn { color: var(--danger); }
+.pref-list { display: flex; flex-direction: column; gap: 14px; }
+.pref-row { padding: 10px 12px; border-radius: 12px; background: var(--bg); box-shadow: inset 3px 3px 8px var(--shadow-dark), inset -3px -3px 8px var(--shadow-light); }
+.danger-zone { border: 2px solid var(--danger); }
+.danger-zone .table-header h3 { color: var(--danger); }
+.danger-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.danger-actions .action-btn { min-height: 40px; }
+.danger-modal-text { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin: 4px 0 16px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
 @media (max-width: 480px) {
   .vendor-dashboard-grid { grid-template-columns: 1fr; }
 

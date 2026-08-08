@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOrganization } from '../context/OrganizationContext';
+import { useSettings } from '../context/SettingsContext';
 import MetricCard from '../components/shared/MetricCard';
 import Modal from '../components/shared/Modal';
 import { loadLeads, saveLead, updateLead, deleteLeadById, upsertVendorFromLead, deleteVendorByLead } from '../lib/supabase';
+import { notifyVendorApproved } from '../lib/api';
 import { formatDateTime, getPriorityBadge, getStageBadgeClass, getStatusBadgeClass } from '../utils/helpers';
 import { downloadCSV } from '../utils/csv';
 import { showToast } from '../utils/toast';
@@ -10,6 +12,7 @@ import Pagination, { usePagination, getPaginatedData } from '../components/share
 
 export default function Leads() {
   const { currentOrg } = useOrganization();
+  const { settings } = useSettings();
   const [allLeads, setAllLeads] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -109,6 +112,14 @@ export default function Leads() {
     try {
       await upsertVendorFromLead(lead, orgId);
       await updateLead(id, { status: 'Won', stage: 'Closing' }, orgId);
+      if (lead.contact_email && settings.emailOnVendorApproved) {
+        notifyVendorApproved({
+          email: lead.contact_email,
+          vendor_name: lead.vendor_name,
+          org_name: currentOrg?.name,
+          sendgrid_api_key: settings.sendgridApiKey || undefined
+        }, settings.backendUrl).catch(() => {});
+      }
       await loadData();
       showToast('Lead converted to active vendor.', 'success');
     } catch { showToast('Failed to convert lead.', 'error'); }

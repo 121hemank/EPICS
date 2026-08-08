@@ -6,9 +6,10 @@ import { loadActivityLogs, logActivity } from '../lib/supabase';
 import { can, getPermissionDefs, ROLE_LABELS } from '../utils/helpers';
 import { formatDateTime } from '../utils/helpers';
 import { showToast } from '../utils/toast';
+import Modal from '../components/shared/Modal';
 
 export default function Settings() {
-  const { settings, updateSettings } = useSettings();
+  const { settings, updateSettings, resetSettings } = useSettings();
   const { currentOrg, role } = useOrganization();
   const { user } = useAuth();
   const orgId = currentOrg?.id;
@@ -33,6 +34,13 @@ export default function Settings() {
   const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl || '');
 
   const [auditLog, setAuditLog] = useState([]);
+
+  const [connTesting, setConnTesting] = useState(false);
+  const [connStatus, setConnStatus] = useState('idle');
+  const [connMessage, setConnMessage] = useState('');
+
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     setDisplayName(settings.displayName || '');
@@ -113,6 +121,56 @@ export default function Settings() {
     showToast('Integrations saved.', 'success');
   };
 
+  const testConnection = async () => {
+    setConnTesting(true);
+    setConnStatus('idle');
+    setConnMessage('');
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch(`${backendUrl.trim()}/`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setConnStatus('ok');
+      setConnMessage(data.message || 'Backend is reachable.');
+      showToast('Backend connection successful.', 'success');
+    } catch (err) {
+      setConnStatus('fail');
+      setConnMessage(err.name === 'AbortError'
+        ? 'Request timed out after 8s.'
+        : `Cannot reach backend: ${err.message}`);
+      showToast('Backend connection failed.', 'error');
+    } finally {
+      setConnTesting(false);
+    }
+  };
+
+  const togglePref = (key, value, label) => {
+    updateSettings({ [key]: value });
+    audit('notifications', `${actorName} ${value ? 'enabled' : 'disabled'} ${label}`);
+    showToast(`${label} ${value ? 'enabled' : 'disabled'}.`, 'success');
+  };
+
+  const handleResetDefaults = () => {
+    resetSettings();
+    setConfirmReset(false);
+    audit('settings', `${actorName} reset settings to defaults`);
+    showToast('Settings reset to defaults.', 'success');
+  };
+
+  const handleClearStorage = () => {
+    ['epics_crm_settings', 'epics_current_org_id', 'epics_notif_read'].forEach(k => localStorage.removeItem(k));
+    setConfirmClear(false);
+    showToast('Local storage cleared. Reloading...', 'info');
+    setTimeout(() => window.location.reload(), 800);
+  };
+
+  const sw = Number(sentimentWeight);
+  const rw = Number(ratingWeight);
+  const weightsTotal = (Number.isFinite(sw) ? sw : 0) + (Number.isFinite(rw) ? rw : 0);
+  const weightsValid = weightsTotal === 100;
+
   const permissionDefs = getPermissionDefs();
   const matrixRoles = Object.keys(ROLE_LABELS).filter(r => r !== 'employee');
 
@@ -138,8 +196,14 @@ export default function Settings() {
             </div>
             <div className="form-group">
               <label>Backend URL {!canDo('settings.app') && <span className="perm-note">(admin only)</span>}</label>
-              <input type="text" value={backendUrl} onChange={e => setBackendUrl(e.target.value)} placeholder="http://127.0.0.1:8000" disabled={!canDo('settings.app')} />
+              <div className="conn-input-row">
+                <input type="text" value={backendUrl} onChange={e => setBackendUrl(e.target.value)} placeholder="http://127.0.0.1:8000" disabled={!canDo('settings.app')} />
+                <button type="button" className="analyze-btn conn-btn" onClick={testConnection} disabled={connTesting || !canDo('settings.app')}>
+                  {connTesting ? 'Testing...' : 'Test Connection'}
+                </button>
+              </div>
               {!canDo('settings.app') && <div className="field-error">You do not have permission to change the backend URL.</div>}
+              {connStatus !== 'idle' && <div className={`conn-status conn-${connStatus}`}>{connMessage}</div>}
             </div>
             <div className="form-group">
               <label>Theme</label>
@@ -163,8 +227,12 @@ export default function Settings() {
               <label>Customer Rating Weight (%)</label>
               <input type="number" min="0" max="100" value={ratingWeight} onChange={e => setRatingWeight(e.target.value)} disabled={!canDo('settings.weights')} />
             </div>
-            <div className="analysis-status">{validationMsg}</div>
-            <button type="submit" className="analyze-btn" disabled={!canDo('settings.weights')}>Save Scoring Settings</button>
+            <div className={`analysis-status weight-status ${weightsValid ? 'weight-ok' : 'weight-warn'}`}>
+              {weightsValid
+                ? `Total: ${weightsTotal}% - Weights balanced.`
+                : `Total: ${weightsTotal}% - AI Sentiment + Customer Rating must equal 100.`}
+            </div>
+            <button type="submit" className="analyze-btn" disabled={!canDo('settings.weights') || !weightsValid}>Save Scoring Settings</button>
           </form>
         </div>
       </div>
@@ -222,6 +290,43 @@ export default function Settings() {
         </div>
       </div>
 
+      <div className="analytics-layout">
+        <div className="analytics-form-card">
+          <h2>Notification Preferences</h2>
+          <p className="batch-hint">Manage which alerts are sent. Toggles apply immediately.</p>
+          <div className="pref-list">
+            <div className="toggle-row pref-row">
+              <input type="checkbox" id="prefEmailApproved" checked={!!settings.emailOnVendorApproved} onChange={e => togglePref('emailOnVendorApproved', e.target.checked, 'Approval emails')} />
+              <label htmlFor="prefEmailApproved" className="toggle-label">Email vendors when they are approved</label>
+            </div>
+            <div className="toggle-row pref-row">
+              <input type="checkbox" id="prefEmailLowScore" checked={!!settings.emailLowScoreAlerts} onChange={e => togglePref('emailLowScoreAlerts', e.target.checked, 'Low score alerts')} />
+              <label htmlFor="prefEmailLowScore" className="toggle-label">Email alerts for low vendor scores</label>
+            </div>
+            <div className="toggle-row pref-row">
+              <input type="checkbox" id="prefBrowserLeads" checked={!!settings.browserNewLeadAlerts} onChange={e => togglePref('browserNewLeadAlerts', e.target.checked, 'New lead notifications')} />
+              <label htmlFor="prefBrowserLeads" className="toggle-label">Real-time browser notifications for new leads</label>
+            </div>
+          </div>
+        </div>
+        <div className="analytics-form-card">
+          <h2>About</h2>
+          <p className="batch-hint">Your notification preferences are stored locally in your browser and used by the topbar notification center and email automation.</p>
+          <div className="analysis-status">
+            Approval emails use the SendGrid API key configured in Integrations.
+          </div>
+        </div>
+      </div>
+
+      <div className="vendor-table-card danger-zone">
+        <div className="table-header"><h3>Danger Zone</h3></div>
+        <p className="batch-hint">Reset the app to a clean state. These actions cannot be undone.</p>
+        <div className="danger-actions">
+          <button type="button" className="action-btn" onClick={() => setConfirmReset(true)}>Reset to Default Settings</button>
+          <button type="button" className="action-btn delete-btn" onClick={() => setConfirmClear(true)}>Clear Local Storage</button>
+        </div>
+      </div>
+
       <div className="vendor-table-card">
         <div className="table-header"><h3>Permissions Matrix</h3></div>
         <div className="table-wrapper">
@@ -270,6 +375,22 @@ export default function Settings() {
           </table>
         </div>
       </div>
+
+      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset to Default Settings">
+        <p className="danger-modal-text">This will restore all settings (weights, rules, integrations, preferences) to their defaults. Continue?</p>
+        <div className="modal-actions">
+          <button type="button" className="action-btn delete-btn" onClick={handleResetDefaults}>Yes, Reset</button>
+          <button type="button" className="action-btn" onClick={() => setConfirmReset(false)}>Cancel</button>
+        </div>
+      </Modal>
+
+      <Modal open={confirmClear} onClose={() => setConfirmClear(false)} title="Clear Local Storage">
+        <p className="danger-modal-text">This clears cached settings, your selected organization, and read notifications from this browser. You will need to sign in again. Continue?</p>
+        <div className="modal-actions">
+          <button type="button" className="action-btn delete-btn" onClick={handleClearStorage}>Yes, Clear</button>
+          <button type="button" className="action-btn" onClick={() => setConfirmClear(false)}>Cancel</button>
+        </div>
+      </Modal>
     </>
   );
 }

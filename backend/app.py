@@ -36,6 +36,13 @@ class PredictionRequest(BaseModel):
 class BatchPredictionRequest(BaseModel):
     texts: list[str]
 
+class VendorApprovedRequest(BaseModel):
+    email: str
+    vendor_name: str
+    org_name: str = "VendorCRM"
+    sendgrid_api_key: str | None = None
+    from_email: str | None = None
+
 label_maps = {
     "bertweet": ["Negative", "Neutral", "Positive"],
     "roberta": ["Negative", "Neutral", "Positive"]
@@ -228,3 +235,41 @@ def compare_models_batch(request: BatchPredictionRequest):
         results.append(item)
 
     return {"results": results}
+
+
+@app.post("/api/notify/vendor-approved")
+def notify_vendor_approved(request: VendorApprovedRequest):
+    api_key = request.sendgrid_api_key or os.getenv("SENDGRID_API_KEY")
+    from_email = request.from_email or os.getenv("SENDGRID_FROM_EMAIL", "no-reply@vendorcrm.app")
+
+    subject = f"You're approved, {request.vendor_name}!"
+    body = (
+        f"Hello {request.vendor_name},\n\n"
+        f"Your company has been approved as an active vendor by {request.org_name}. "
+        f"Welcome aboard! You can now start receiving orders.\n\n"
+        f"Regards,\n{request.org_name}"
+    )
+
+    if not api_key:
+        print(f"[mail] SendGrid not configured; would email {request.email}: {subject}", flush=True)
+        return {"sent": False, "reason": "SENDGRID_API_KEY not configured", "email": request.email}
+
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+
+        message = Mail(
+            from_email=from_email,
+            to_emails=request.email,
+            subject=subject,
+            plain_text_content=body,
+        )
+        response = SendGridAPIClient(api_key).send(message)
+        return {
+            "sent": response.status_code in (200, 201, 202),
+            "status_code": response.status_code,
+            "email": request.email,
+        }
+    except Exception as e:
+        print(f"[mail] Failed to send approval email: {e}", flush=True)
+        return {"sent": False, "reason": str(e), "email": request.email}

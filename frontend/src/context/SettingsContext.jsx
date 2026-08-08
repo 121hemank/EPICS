@@ -13,8 +13,15 @@ const DEFAULT_SETTINGS = {
   openaiApiKey: "",
   sendgridApiKey: "",
   whatsappWebhook: "",
-  supabaseUrl: ""
+  supabaseUrl: "",
+  emailOnVendorApproved: true,
+  emailLowScoreAlerts: true,
+  browserNewLeadAlerts: false
 };
+
+function getDefaultSettings() {
+  return { ...DEFAULT_SETTINGS };
+}
 
 function getStored() {
   try {
@@ -47,8 +54,12 @@ export function SettingsProvider({ children }) {
     setSettings(prev => ({ ...prev, ...partial }));
   }, []);
 
+  const resetSettings = useCallback(() => {
+    setSettings(getDefaultSettings());
+  }, []);
+
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSettings, resetSettings }}>
       {children}
     </SettingsContext.Provider>
   );
