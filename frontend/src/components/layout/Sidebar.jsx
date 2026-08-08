@@ -35,7 +35,6 @@ export default function Sidebar({ collapsed, onToggle }) {
               to={link.to}
               end={link.to === '/'}
               className={({ isActive }) => isActive ? 'active' : ''}
-              style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}
             >
               {link.label}
             </NavLink>

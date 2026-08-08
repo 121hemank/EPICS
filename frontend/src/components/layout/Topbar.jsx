@@ -38,11 +38,12 @@ export default function Topbar() {
   };
 
   const roleBadge = role ? role.charAt(0).toUpperCase() + role.slice(1) : '';
+  const firstLetter = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <span className="menu-toggle" onClick={() => {}}>☰</span>
+        <span className="menu-toggle" onClick={() => {}} aria-label="Toggle menu">☰</span>
         <h2 className="topbar-title">VendorCRM</h2>
       </div>
       <div className="topbar-right">
@@ -50,15 +51,19 @@ export default function Topbar() {
           <button
             className="org-switcher-btn"
             onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
+            aria-expanded={orgDropdownOpen}
+            aria-haspopup="listbox"
           >
             <span className="org-switcher-name">{currentOrg?.name || 'No Org'}</span>
             <span className="org-switcher-arrow">▾</span>
           </button>
           {orgDropdownOpen && (
-            <div className="org-dropdown">
+            <div className="org-dropdown" role="listbox">
               {organizations.map(org => (
                 <button
                   key={org.id}
+                  role="option"
+                  aria-selected={org.id === currentOrg?.id}
                   className={`org-dropdown-item ${org.id === currentOrg?.id ? 'active' : ''}`}
                   onClick={() => {
                     switchOrg(org.id);
@@ -72,9 +77,12 @@ export default function Topbar() {
           )}
         </div>
         {roleBadge && <span className="role-badge">{roleBadge}</span>}
-        <span id="liveClock">{clock}</span>
-        <span className="topbar-user">{displayName}</span>
-        <button className="topbar-logout-btn" onClick={handleLogout}>Logout</button>
+        <span id="liveClock" title={clock}>{clock}</span>
+        <span className="topbar-user" title={displayName}>
+          <span className="topbar-user-avatar" aria-hidden="true">{firstLetter}</span>
+          {displayName}
+        </span>
+        <button className="topbar-logout-btn" onClick={handleLogout} aria-label="Logout">Logout</button>
       </div>
     </header>
   );

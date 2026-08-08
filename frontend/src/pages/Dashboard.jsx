@@ -9,9 +9,14 @@ import {
   CategoryScale, LinearScale, PointElement, LineElement, BarElement,
   ArcElement, Tooltip, Legend, Filler
 } from 'chart.js';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { Doughnut, Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler);
+
+function themeColor(name, fallback) {
+  if (typeof document === 'undefined') return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
 
 export default function Dashboard() {
   const { currentOrg } = useOrganization();
@@ -64,8 +69,6 @@ export default function Dashboard() {
     })();
   }, [selectedVendor, orgId]);
 
-  const totalReviews = vendorScores.reduce((s, v) => s + Number(v.total_reviews || 0), 0);
-  const avgScore = vendorScores.length ? (vendorScores.reduce((s, v) => s + Number(v.vendor_score || 0), 0) / vendorScores.length) : 0;
   const activeVendors = approvedVendors.filter(v => (v.onboarding_status || '').toLowerCase() === 'active').length;
   const wonLeads = leads.filter(l => (l.status || '').toLowerCase() === 'won').length;
   const lostLeads = leads.filter(l => (l.status || '').toLowerCase() === 'lost').length;
@@ -73,11 +76,49 @@ export default function Dashboard() {
 
   const top6 = [...vendorScores].sort((a, b) => Number(b.vendor_score) - Number(a.vendor_score)).slice(0, 6);
 
-  const lineData = {
+  const textColor = themeColor('--text', '#2d2a26');
+  const mutedColor = themeColor('--text-muted', '#6f5f53');
+  const gridColor = themeColor('--shadow-dark', 'rgba(61,50,41,0.18)');
+  const accentColor = themeColor('--accent', '#c4755d');
+
+  const barData = {
     labels: top6.map(v => v.vendor_name),
-    datasets: [{ label: 'Vendor Score', data: top6.map(v => Number(v.vendor_score || 0)), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', borderWidth: 3, tension: 0.35, fill: false }]
+    datasets: [{
+      label: 'Vendor Score',
+      data: top6.map(v => Number(v.vendor_score || 0)),
+      backgroundColor: accentColor,
+      hoverBackgroundColor: themeColor('--accent-hover', '#d4826b'),
+      borderRadius: 6,
+      maxBarThickness: 42
+    }]
   };
-  const lineOptions = { responsive: true, maintainAspectRatio: false, animation: false, scales: { y: { beginAtZero: true, min: 0, max: 5 } } };
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'center',
+        labels: { color: textColor, font: { weight: 700, size: 13 }, usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 12 }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        min: 0,
+        max: 5,
+        ticks: { stepSize: 1, color: mutedColor, font: { weight: 600 } },
+        grid: { color: gridColor },
+        border: { color: gridColor }
+      },
+      x: {
+        ticks: { color: textColor, font: { weight: 600 }, autoSkip: false, maxRotation: 45, minRotation: 0 },
+        grid: { display: false },
+        border: { color: gridColor }
+      }
+    }
+  };
 
   const stageCounts = { Prospecting: 0, Negotiation: 0, Closing: 0, Won: 0, Lost: 0 };
   leads.forEach(l => {
@@ -93,20 +134,29 @@ export default function Dashboard() {
 
   const donutData = hasStageData ? {
     labels: Object.keys(stageCounts),
-    datasets: [{ data: Object.values(stageCounts), backgroundColor: ['#2563eb', '#22c55e', '#f59e0b', '#10b981', '#ef4444'], borderWidth: 2 }]
+    datasets: [{ data: Object.values(stageCounts), backgroundColor: ['#2563eb', '#22c55e', '#f59e0b', '#10b981', '#ef4444'], borderWidth: 2, borderColor: themeColor('--card', '#ede4d9') }]
   } : null;
+  const donutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    cutout: '66%',
+    radius: '78%',
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'center',
+        labels: { color: textColor, font: { weight: 700, size: 13 }, usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 12 }
+      }
+    }
+  };
 
   const customersWithStatus = customers.map(c => ({ ...c, computedStatus: getCustomerStatus(c.latest_review_date) }));
 
   return (
     <>
-      <div className="vendor-dashboard-grid">
-        <MetricCard title="Total Vendors" value={approvedVendors.length} />
-        <MetricCard title="Total Reviews" value={totalReviews} />
-        <MetricCard title="Average Vendor Score" value={avgScore.toFixed(2)} />
+      <div className="kpi-grid">
         <MetricCard title="Active Vendors" value={activeVendors} />
-      </div>
-      <div className="vendor-dashboard-grid">
         <MetricCard title="Total Leads" value={leads.length} />
         <MetricCard title="Won Leads" value={wonLeads} />
         <MetricCard title="Lost Leads" value={lostLeads} />
@@ -117,13 +167,17 @@ export default function Dashboard() {
         <div className="chart-box">
           <h3>Top Vendor Scores</h3>
           <div className="chart-canvas-wrap">
-            {top6.length > 0 && <Line data={lineData} options={lineOptions} />}
+            {top6.length > 0
+              ? <Bar data={barData} options={barOptions} />
+              : <p className="chart-empty">No vendor score data available yet.</p>}
           </div>
         </div>
         <div className="chart-box">
           <h3>Lead Stage Distribution</h3>
           <div className="chart-canvas-wrap">
-            {donutData && <Doughnut data={donutData} options={{ responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'top' } } }} />}
+            {donutData
+              ? <Doughnut data={donutData} options={donutOptions} />
+              : <p className="chart-empty">No lead stage data available yet.</p>}
           </div>
         </div>
       </div>
