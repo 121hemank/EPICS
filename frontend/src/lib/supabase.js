@@ -24,14 +24,12 @@ export async function logActivity(orgId, action, entityType, entityName, details
 }
 
 export async function loadActivityLogs(orgId, limit = 20) {
-  const { data, error } = await supabase
-    .from("activity_logs")
-    .select("*, user:user_id(email)")
-    .eq("organization_id", orgId)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const { data, error } = await supabase.rpc('get_org_activity_logs', {
+    p_org_id: orgId,
+    p_limit: limit
+  });
   if (error) { console.error(error); return []; }
-  return data || [];
+  return (data || []).map(r => ({ ...r, user: { email: r.user_email } }));
 }
 
 // ---- Auth ----
