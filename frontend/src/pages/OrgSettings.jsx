@@ -82,16 +82,15 @@ export default function OrgSettings() {
     }
   };
 
-  const handleRemove = async (memberId) => {
-    const target = members.find(m => m.id === memberId);
-    const activeAdmins = members.filter(m => m.role === 'admin' && m.status === 'active');
-    if (target?.role === 'admin' && activeAdmins.length <= 1) {
+  const handleRemove = async (m) => {
+    const activeAdmins = members.filter(x => x.role === 'admin' && x.status === 'active');
+    if (m?.role === 'admin' && activeAdmins.length <= 1) {
       showToast('You cannot remove the last active admin.', 'error');
       return;
     }
     if (!window.confirm('Remove this member from the organization?')) return;
     try {
-      await removeMember(memberId, currentOrg.id);
+      await removeMember(m.user_id, currentOrg.id);
       await refreshMembers();
       showToast('Member removed.', 'success');
     } catch (err) {
@@ -251,7 +250,7 @@ export default function OrgSettings() {
                   {isAdmin && (
                     <td>
                       {m.user_id !== user?.id && (
-                        <button className="action-btn delete-btn" onClick={() => handleRemove(m.id)}>
+                        <button className="action-btn delete-btn" onClick={() => handleRemove(m)}>
                           Remove
                         </button>
                       )}
