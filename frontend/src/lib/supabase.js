@@ -157,11 +157,16 @@ export async function recoverOrgOwner(orgId) {
 }
 
 export async function removeMember(memberId, orgId) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('organization_members')
     .delete()
-    .eq('id', memberId);
+    .eq('id', memberId)
+    .eq('organization_id', orgId)
+    .select('id');
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error('Member was not removed. Your DB role may not pass the DELETE policy, or the row is already gone.');
+  }
   logActivity(orgId, 'delete', 'member', memberId, 'Member removed from organization');
 }
 
