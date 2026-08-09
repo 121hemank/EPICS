@@ -161,7 +161,15 @@ export async function removeMember(userId, orgId) {
   });
   if (error) throw error;
   if (data === false) {
-    throw new Error('Member row not found — they may already be removed. Refresh the list.');
+    const { data: stillThere } = await supabase
+      .from('organization_members')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('organization_id', orgId);
+    if (!stillThere || stillThere.length === 0) {
+      return;
+    }
+    throw new Error('Member could not be removed. Try refreshing the page first.');
   }
   logActivity(orgId, 'delete', 'member', userId, 'Member removed from organization');
 }
